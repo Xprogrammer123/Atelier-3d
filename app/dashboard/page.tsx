@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import Image from 'next/image'
+import { DbSetupBanner } from '@/components/DbSetupBanner'
 import { getSellerListings } from '@/lib/listings'
 import { createClient } from '@/lib/supabase/server'
 import { formatPrice, getArUrl } from '@/lib/types'
@@ -14,10 +15,11 @@ export default async function DashboardPage() {
 
   if (!user) redirect('/auth/login')
 
-  const listings = await getSellerListings(user.id)
+  const { listings, dbSetupRequired } = await getSellerListings(user.id)
 
   return (
     <main className="page-shell">
+      {dbSetupRequired && <DbSetupBanner />}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
         <div>
           <h1 className="page-title">Seller dashboard</h1>
