@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import { CatalogueFilters } from '@/components/CatalogueFilters'
+import { DbSetupBanner } from '@/components/DbSetupBanner'
 import { ProductCard } from '@/components/ProductCard'
 import { getLiveListings } from '@/lib/listings'
 
@@ -16,7 +17,7 @@ export default async function CataloguePage({
   searchParams: SearchParams
 }) {
   const params = await searchParams
-  const listings = await getLiveListings({
+  const { listings, dbSetupRequired } = await getLiveListings({
     category: params.category,
     minPrice: params.minPrice ? Number(params.minPrice) * 100 : undefined,
     maxPrice: params.maxPrice ? Number(params.maxPrice) * 100 : undefined,
@@ -35,24 +36,26 @@ export default async function CataloguePage({
         </p>
       </section>
 
+      {dbSetupRequired && <DbSetupBanner />}
+
       <Suspense fallback={<div className="filter-bar">Loading filters…</div>}>
         <CatalogueFilters />
       </Suspense>
 
-      {listings.length === 0 ? (
+      {!dbSetupRequired && listings.length === 0 ? (
         <div className="empty-state">
           <p>No live listings yet.</p>
           <p>
             <a href="/auth/register">Register as a seller</a> to list your first piece.
           </p>
         </div>
-      ) : (
+      ) : !dbSetupRequired ? (
         <section className="catalog-grid" aria-label="Furniture catalogue">
           {listings.map((listing) => (
             <ProductCard key={listing.id} listing={listing} />
           ))}
         </section>
-      )}
+      ) : null}
     </main>
   )
 }

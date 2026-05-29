@@ -18,6 +18,28 @@ type Props = {
   onArLaunch?: () => void
 }
 
+function ViewerSkeleton({ className }: { className: string }) {
+  return (
+    <div
+      className={className}
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+        minHeight: 'inherit',
+        display: 'grid',
+        placeItems: 'center',
+        background: 'var(--surface-paper)',
+        color: 'var(--ink-muted)',
+        fontSize: '0.85rem',
+      }}
+      aria-hidden
+    >
+      Loading 3D preview…
+    </div>
+  )
+}
+
 export function ProductModelViewer({
   src,
   alt,
@@ -32,9 +54,17 @@ export function ProductModelViewer({
   onArLaunch,
 }: Props) {
   const viewerRef = useRef<ModelViewerElement | null>(null)
+  const [mounted, setMounted] = useState(false)
+  const [isDesktop, setIsDesktop] = useState(true)
   const [loadState, setLoadState] = useState<'loading' | 'ready' | 'error'>('loading')
 
   useEffect(() => {
+    setIsDesktop(!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent))
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
     const el = viewerRef.current
     if (!el) return
     const onLoad = () => setLoadState('ready')
@@ -45,7 +75,7 @@ export function ProductModelViewer({
       el.removeEventListener('load', onLoad)
       el.removeEventListener('error', onError)
     }
-  }, [src])
+  }, [src, mounted])
 
   async function handleActivateAR() {
     onArLaunch?.()
@@ -56,9 +86,11 @@ export function ProductModelViewer({
     }
   }
 
-  const isDesktop =
-    typeof window !== 'undefined' &&
-    !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+  if (!mounted) {
+    return <ViewerSkeleton className={className} />
+  }
+
+  const arEnabled = ar && !isDesktop
 
   return (
     <div className={className} style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -68,7 +100,7 @@ export function ProductModelViewer({
         alt={alt}
         poster={poster}
         loading={loading}
-        ar={ar && !isDesktop}
+        ar={arEnabled}
         ar-modes="webxr scene-viewer quick-look"
         ar-placement="floor"
         ar-scale="fixed"
@@ -81,12 +113,17 @@ export function ProductModelViewer({
         interaction-prompt="none"
         style={{ width: '100%', height: '100%', minHeight: 'inherit' }}
       >
-        {showArButton && ar && !isDesktop && (
+        {showArButton && arEnabled && (
           <button
             slot="ar-button"
             type="button"
             className="btn-accent"
-            style={{ position: 'absolute', bottom: '1rem', left: '50%', transform: 'translateX(-50%)' }}
+            style={{
+              position: 'absolute',
+              bottom: '1rem',
+              left: '50%',
+              transform: 'translateX(-50%)',
+            }}
             onClick={() => void handleActivateAR()}
           >
             View in your space
@@ -103,6 +140,7 @@ export function ProductModelViewer({
             background: 'var(--surface-paper)',
             color: 'var(--ink-muted)',
             fontSize: '0.85rem',
+            pointerEvents: 'none',
           }}
         >
           Loading 3D model…
@@ -123,7 +161,7 @@ export function ProductModelViewer({
           Couldn&apos;t load model. Try again later.
         </div>
       )}
-      {eagerAr && ar && !isDesktop && (
+      {eagerAr && arEnabled && (
         <button
           type="button"
           className="btn-accent"
