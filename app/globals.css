@@ -1,3 +1,6 @@
+@import './landing.css';
+@import './listing-pages.css';
+
 :root {
   --surface: oklch(0.965 0.008 78);
   --surface-strong: oklch(0.985 0.005 82);
@@ -18,8 +21,8 @@
   --radius-lg: 14px;
   --shadow-soft: 0 12px 32px rgba(44, 33, 22, 0.08);
   --shadow-lift: 0 18px 40px rgba(44, 33, 22, 0.12);
-  --font-body: var(--font-body-family), 'Plus Jakarta Sans', system-ui, sans-serif;
-  --font-display: var(--font-display-family), 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-display: 'Cormorant Garamond', Georgia, serif;
 }
 
 * { box-sizing: border-box; }
@@ -655,7 +658,3 @@ code {
     box-shadow: var(--shadow-soft);
   }
 }
-
-/* Bundled via single entry — do not import landing/listing CSS in layout.tsx */
-@import './landing.css';
-@import './listing-pages.css';
