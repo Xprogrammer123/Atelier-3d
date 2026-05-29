@@ -1,14 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import dynamic from 'next/dynamic'
+import { ProductModelViewer } from '@/components/ProductModelViewer'
 import { formatPrice } from '@/lib/types'
 import type { ListingWithSeller } from '@/lib/types'
-
-const ProductModelViewer = dynamic(
-  () => import('@/components/ProductModelViewer').then((m) => m.ProductModelViewer),
-  { ssr: false, loading: () => <div className="product-card__media" style={{ minHeight: 180 }} /> }
-)
 
 type Props = {
   listing: ListingWithSeller

@@ -2,14 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import dynamic from 'next/dynamic'
+import { ProductModelViewer } from '@/components/ProductModelViewer'
 import { createClient } from '@/lib/supabase/client'
 import type { JobStatus } from '@/lib/types'
-
-const ProductModelViewer = dynamic(
-  () => import('@/components/ProductModelViewer').then((m) => m.ProductModelViewer),
-  { ssr: false }
-)
 
 type Props = {
   listingId: string

@@ -129,7 +129,6 @@ function PhotoSlot({
         {label}
       </span>
       {preview ? (
-        // eslint-disable-next-line @next/next/no-img-element
         <img src={preview} alt={`${label} preview`} />
       ) : (
         <span style={{ fontSize: '0.8rem', color: 'var(--ink-muted)' }}>Tap to upload</span>
