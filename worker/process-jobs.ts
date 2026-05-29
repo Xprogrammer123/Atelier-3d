@@ -2,14 +2,17 @@
  * Background worker — polls queued jobs and runs Blender pipeline.
  * Run: npm run worker
  */
-import { createClient } from '@supabase/supabase-js'
+import { loadEnv, requireEnv } from '../lib/load-env'
+
+loadEnv()
+
+import { createNodeSupabaseClient } from '../lib/supabase/node-client'
 import { processListingJob } from '../lib/processing'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { persistSession: false } }
-)
+const supabaseUrl = requireEnv('NEXT_PUBLIC_SUPABASE_URL')
+const serviceRoleKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY')
+
+const supabase = createNodeSupabaseClient(supabaseUrl, serviceRoleKey)
 
 const POLL_MS = 5000
 

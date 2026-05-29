@@ -1,14 +1,23 @@
 import { spawn } from 'child_process'
 import fs from 'fs/promises'
 import path from 'path'
-import { createServiceClient } from '@/lib/supabase/admin'
+import { loadEnv } from '@/lib/load-env'
+import { createNodeSupabaseClient } from '@/lib/supabase/node-client'
+
+function getServiceClient() {
+  loadEnv()
+  return createNodeSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
 import { generateQrBuffer } from '@/lib/qr'
 import { getArUrl } from '@/lib/types'
 
 const BUCKET = 'listings'
 
 export async function processListingJob(listingId: string): Promise<void> {
-  const supabase = createServiceClient()
+  const supabase = getServiceClient()
 
   const { data: job } = await supabase
     .from('processing_jobs')
