@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-
 :root {
   --surface: oklch(0.965 0.008 78);
   --surface-strong: oklch(0.985 0.005 82);
@@ -20,8 +18,8 @@
   --radius-lg: 14px;
   --shadow-soft: 0 12px 32px rgba(44, 33, 22, 0.08);
   --shadow-lift: 0 18px 40px rgba(44, 33, 22, 0.12);
-  --font-body: 'Plus Jakarta Sans', sans-serif;
-  --font-display: 'Cormorant Garamond', serif;
+  --font-body: var(--font-body-family), 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-display: var(--font-display-family), 'Cormorant Garamond', Georgia, serif;
 }
 
 * { box-sizing: border-box; }
@@ -153,12 +151,6 @@ model-viewer { width: 100%; height: 100%; }
   letter-spacing: -0.02em;
 }
 
-.page-lede {
-  margin: 0 0 1.5rem;
-  max-width: 40rem;
-  color: var(--ink-soft);
-}
-
 /* Catalogue */
 .catalog-screen {
   position: relative;
@@ -180,6 +172,14 @@ model-viewer { width: 100%; height: 100%; }
 }
 
 .catalog-hero { max-width: 52rem; }
+.catalog-eyebrow {
+  margin: 0 0 0.5rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
 .catalog-title {
   margin: 0;
   font-family: var(--font-display);
@@ -189,6 +189,15 @@ model-viewer { width: 100%; height: 100%; }
   color: var(--ink-strong);
 }
 .catalog-title em { font-style: italic; color: var(--accent-clay); }
+
+.catalog-lede,
+.page-lede {
+  margin: 0 0 1.5rem;
+  max-width: 38rem;
+  font-size: clamp(0.98rem, 1.3vw, 1.08rem);
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
 
 .filter-bar {
   display: flex;
@@ -262,11 +271,37 @@ model-viewer { width: 100%; height: 100%; }
 }
 .product-card__price { margin: 0; font-weight: 600; color: var(--accent-clay); }
 .product-card__seller { margin: 0; font-size: 0.8rem; color: var(--ink-muted); }
+.product-card__name a:hover {
+  color: var(--accent-clay);
+}
+
 .product-card__actions {
   display: flex;
   gap: 0.5rem;
-  margin-top: 0.75rem;
+  margin-top: 0.85rem;
   flex-wrap: wrap;
+}
+
+.product-card__actions .btn-secondary,
+.product-card__actions .btn-accent {
+  flex: 1 1 8rem;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+}
+
+.product-card__actions .btn-accent {
+  box-shadow: 0 8px 20px rgba(44, 33, 22, 0.12);
+}
+
+code {
+  font-size: 0.85em;
+  padding: 0.15em 0.4em;
+  border-radius: var(--radius-xs);
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
 }
 
 /* Product detail */
@@ -536,4 +571,38 @@ model-viewer { width: 100%; height: 100%; }
   gap: 1.5rem;
   font-size: 0.8rem;
   color: var(--ink-muted);
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 640px) {
+  .catalog-screen.page-shell {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .site-header {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .catalog-title {
+    font-size: clamp(2rem, 9vw, 2.8rem);
+  }
+
+  .product-card__actions {
+    flex-direction: column;
+  }
+
+  .product-card__actions .btn-secondary,
+  .product-card__actions .btn-accent {
+    width: 100%;
+  }
+}
+
+@media (hover: none) {
+  .product-card:hover {
+    transform: none;
+    box-shadow: var(--shadow-soft);
+  }
 }

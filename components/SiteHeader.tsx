@@ -14,7 +14,7 @@ export async function SiteHeader() {
         <span>FurnishAR</span>
       </Link>
       <nav className="site-nav" aria-label="Main">
-        <Link href="/">Catalogue</Link>
+        <Link href="/catalogue">Shop</Link>
         {user ? (
           <>
             <Link href="/dashboard">Dashboard</Link>
