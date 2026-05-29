@@ -15,10 +15,10 @@ export function ArCoreBanner() {
     const isAndroid = /Android/i.test(navigator.userAgent)
     if (!isAndroid) return
 
-    const xr = navigator.xr
+    const xr = (navigator as Navigator & { xr?: XRSystem }).xr
     if (!xr?.isSessionSupported) return
 
-    xr.isSessionSupported('immersive-ar').then((supported) => {
+    void xr.isSessionSupported('immersive-ar').then((supported) => {
       if (!supported) setVisible(true)
     })
   }, [])

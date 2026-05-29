@@ -2,7 +2,7 @@
 
 import '@google/model-viewer'
 import { useEffect, useRef, useState } from 'react'
-import type { ModelViewerElement } from '@/lib/model-viewer'
+import type { ModelViewerElement } from '@/types/model-viewer'
 
 type Props = {
   src: string

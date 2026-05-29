@@ -57,9 +57,11 @@ export async function getListingById(id: string): Promise<ListingWithSeller | nu
   return data as ListingWithSeller
 }
 
-export async function getSellerListings(sellerId: string): Promise<
-  (Listing & { job?: { status: string } | null })[]
-> {
+export type SellerListing = Listing & {
+  processing_jobs?: { status: string }[] | null
+}
+
+export async function getSellerListings(sellerId: string): Promise<SellerListing[]> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
@@ -69,9 +71,7 @@ export async function getSellerListings(sellerId: string): Promise<
     .order('created_at', { ascending: false })
 
   if (error) throw error
-  return (data ?? []) as (Listing & {
-    processing_jobs?: { status: string }[] | null
-  })[]
+  return (data ?? []) as SellerListing[]
 }
 
 export async function getProcessingJob(listingId: string) {
