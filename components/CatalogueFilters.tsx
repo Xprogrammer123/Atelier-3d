@@ -38,9 +38,7 @@ export function CatalogueFilters() {
         name="minPrice"
         placeholder="Min price ($)"
         defaultValue={params.get('minPrice') ?? ''}
-        onBlur={(e) =>
-          update('minPrice', e.target.value ? String(Number(e.target.value) * 100) : '')
-        }
+        onBlur={(e) => update('minPrice', e.target.value)}
         aria-label="Minimum price"
       />
       <input
@@ -48,9 +46,7 @@ export function CatalogueFilters() {
         name="maxPrice"
         placeholder="Max price ($)"
         defaultValue={params.get('maxPrice') ?? ''}
-        onBlur={(e) =>
-          update('maxPrice', e.target.value ? String(Number(e.target.value) * 100) : '')
-        }
+        onBlur={(e) => update('maxPrice', e.target.value)}
         aria-label="Maximum price"
       />
       <input

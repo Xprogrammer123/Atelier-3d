@@ -12,11 +12,6 @@ const ProductModelViewer = dynamic(
   { ssr: false }
 )
 
-const ArSessionTracker = dynamic(
-  () => import('@/components/ArSessionTracker').then((m) => m.ArSessionTracker),
-  { ssr: false }
-)
-
 type Props = { params: Promise<{ id: string }> }
 
 export default async function ArDirectPage({ params }: Props) {
@@ -32,7 +27,6 @@ export default async function ArDirectPage({ params }: Props) {
 
   return (
     <div className="ar-page">
-      <ArSessionTracker listingId={id} />
       <header className="ar-page__header">
         <Link
           href={`/product/${id}`}

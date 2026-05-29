@@ -18,8 +18,8 @@ export default async function CataloguePage({
   const params = await searchParams
   const listings = await getLiveListings({
     category: params.category,
-    minPrice: params.minPrice ? Number(params.minPrice) : undefined,
-    maxPrice: params.maxPrice ? Number(params.maxPrice) : undefined,
+    minPrice: params.minPrice ? Number(params.minPrice) * 100 : undefined,
+    maxPrice: params.maxPrice ? Number(params.maxPrice) * 100 : undefined,
     location: params.location,
   })
 
