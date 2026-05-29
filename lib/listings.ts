@@ -64,17 +64,14 @@ export async function getSellerListings(sellerId: string): Promise<
 
   const { data, error } = await supabase
     .from('listings')
-    .select(
-      `
-      *,
-      job:processing_jobs(status)
-    `
-    )
+    .select('*, processing_jobs(status)')
     .eq('seller_id', sellerId)
     .order('created_at', { ascending: false })
 
   if (error) throw error
-  return (data ?? []) as (Listing & { job?: { status: string } | null })[]
+  return (data ?? []) as (Listing & {
+    processing_jobs?: { status: string }[] | null
+  })[]
 }
 
 export async function getProcessingJob(listingId: string) {

@@ -46,10 +46,7 @@ export default async function DashboardPage() {
                 listing.status === 'live'
                   ? await generateQrDataUrl(arUrl)
                   : null
-              const jobStatus =
-                Array.isArray(listing.job) && listing.job[0]
-                  ? (listing.job[0] as { status: string }).status
-                  : (listing.job as { status: string } | null)?.status
+              const jobStatus = listing.processing_jobs?.[0]?.status
 
               return (
                 <article key={listing.id} className="listing-row">

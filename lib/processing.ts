@@ -1,7 +1,7 @@
 import { spawn } from 'child_process'
 import fs from 'fs/promises'
 import path from 'path'
-import { createServiceClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/admin'
 import { generateQrBuffer } from '@/lib/qr'
 import { getArUrl } from '@/lib/types'
 
