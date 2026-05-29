@@ -1,15 +1,19 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Suspense, useState } from 'react'
+import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton'
 import { createClient } from '@/lib/supabase/client'
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const urlError = searchParams.get('error')
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(urlError)
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
@@ -33,6 +37,13 @@ export default function LoginPage() {
         <h1 className="page-title" style={{ fontSize: '1.8rem' }}>
           Log in
         </h1>
+
+        <GoogleSignInButton />
+
+        <div className="auth-divider">
+          <span>or</span>
+        </div>
+
         <form onSubmit={(e) => void handleSubmit(e)} className="form-card" style={{ border: 0, padding: 0 }}>
           <div className="form-field">
             <label htmlFor="email">Email</label>
@@ -56,7 +67,7 @@ export default function LoginPage() {
           </div>
           {error && <p className="error-msg">{error}</p>}
           <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? 'Signing in…' : 'Log in'}
+            {loading ? 'Signing in…' : 'Log in with email'}
           </button>
         </form>
         <p style={{ margin: 0, fontSize: '0.85rem' }}>
@@ -64,5 +75,13 @@ export default function LoginPage() {
         </p>
       </div>
     </main>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<main className="page-shell auth-card">Loading…</main>}>
+      <LoginForm />
+    </Suspense>
   )
 }

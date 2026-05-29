@@ -18,9 +18,9 @@ const cormorant = Cormorant_Garamond({
 })
 
 export const metadata: Metadata = {
-  title: 'FurnishAR — AR Furniture Ecommerce',
+  title: 'Atelier — AR Furniture Showroom',
   description:
-    'Browse furniture with 3D previews and place items in your room with in-browser AR. No app download required.',
+    'Curated furniture with gallery-grade 3D previews. Place pieces in your room with in-browser AR — no app required.',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

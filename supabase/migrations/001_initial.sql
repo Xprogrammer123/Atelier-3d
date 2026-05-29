@@ -1,4 +1,4 @@
--- FurnishAR initial schema
+-- Atelier initial schema
 
 create extension if not exists "uuid-ossp";
 

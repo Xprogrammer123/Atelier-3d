@@ -76,7 +76,7 @@ export default async function DashboardPage() {
                     {listing.status === 'live' && (
                       <>
                         {qr && (
-                          <a href={qr} download={`furnishar-${listing.id}.png`}>
+                          <a href={qr} download={`atelier-${listing.id}.png`}>
                             <Image src={qr} alt="QR" width={80} height={80} unoptimized />
                           </a>
                         )}

@@ -11,10 +11,10 @@ export async function SiteHeader() {
     <header className="site-header">
       <Link href="/" className="site-brand">
         <span className="site-brand__mark" aria-hidden="true" />
-        <span>FurnishAR</span>
+        <span>Atelier</span>
       </Link>
       <nav className="site-nav" aria-label="Main">
-        <Link href="/catalogue">Shop</Link>
+        <Link href="/catalogue">Collection</Link>
         {user ? (
           <>
             <Link href="/dashboard">Dashboard</Link>

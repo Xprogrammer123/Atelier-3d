@@ -32,7 +32,7 @@ export async function processListingJob(listingId: string): Promise<void> {
     .update({ status: 'generating', started_at: new Date().toISOString() })
     .eq('listing_id', listingId)
 
-  const workDir = path.join('/tmp', 'furnishar', listingId)
+  const workDir = path.join('/tmp', 'atelier', listingId)
   await fs.mkdir(workDir, { recursive: true })
 
   try {

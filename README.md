@@ -1,4 +1,4 @@
-# FurnishAR
+# Atelier
 
 AR furniture ecommerce platform. Sellers upload four photos per item; a Blender pipeline generates a GLB model. Buyers browse listings and place furniture in their room via in-browser AR (`model-viewer` — WebXR, Scene Viewer, AR Quick Look).
 

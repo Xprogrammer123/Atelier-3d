@@ -12,7 +12,7 @@ type SearchParams = Promise<{
 }>
 
 export const metadata = {
-  title: 'Shop — FurnishAR',
+  title: 'Collection — Atelier',
   description: 'Browse furniture with 3D previews and AR placement.',
 }
 

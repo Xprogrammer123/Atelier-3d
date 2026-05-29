@@ -1,5 +1,5 @@
 """
-FurnishAR MVP: texture-mapped box mesh from 4 photos.
+Atelier MVP: texture-mapped box mesh from 4 photos.
 Usage: blender --background --python generate.py -- <work_dir> <output.glb>
 Expects front.jpg, back.jpg, left.jpg, right.jpg in work_dir.
 """

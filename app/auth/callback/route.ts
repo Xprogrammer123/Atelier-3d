@@ -5,11 +5,27 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
   const next = searchParams.get('next') ?? '/dashboard'
+  const oauthError = searchParams.get('error_description') ?? searchParams.get('error')
+
+  const base = (process.env.NEXT_PUBLIC_APP_URL ?? origin).replace(/\/$/, '')
+
+  if (oauthError) {
+    return NextResponse.redirect(
+      `${base}/auth/login?error=${encodeURIComponent(oauthError)}`
+    )
+  }
 
   if (code) {
     const supabase = await createClient()
-    await supabase.auth.exchangeCodeForSession(code)
+    const { error } = await supabase.auth.exchangeCodeForSession(code)
+
+    if (error) {
+      return NextResponse.redirect(
+        `${base}/auth/login?error=${encodeURIComponent(error.message)}`
+      )
+    }
   }
 
-  return NextResponse.redirect(`${origin}${next}`)
+  const safeNext = next.startsWith('/') ? next : '/dashboard'
+  return NextResponse.redirect(`${base}${safeNext}`)
 }

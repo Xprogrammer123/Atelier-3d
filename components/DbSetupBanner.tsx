@@ -14,7 +14,7 @@ export function DbSetupBanner() {
         Database setup required
       </h2>
       <p style={{ margin: '0 0 0.75rem', fontSize: '0.92rem' }}>
-        Supabase is connected, but the FurnishAR tables have not been created yet.
+        Supabase is connected, but the Atelier tables have not been created yet.
       </p>
       <ol style={{ margin: '0 0 0.75rem', paddingLeft: '1.25rem', fontSize: '0.88rem' }}>
         <li>

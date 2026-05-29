@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton'
 import { createClient } from '@/lib/supabase/client'
 
 export default function RegisterPage() {
@@ -38,6 +39,13 @@ export default function RegisterPage() {
         <h1 className="page-title" style={{ fontSize: '1.8rem' }}>
           Register as seller
         </h1>
+
+        <GoogleSignInButton label="Sign up with Google" />
+
+        <div className="auth-divider">
+          <span>or</span>
+        </div>
+
         <form onSubmit={(e) => void handleSubmit(e)} className="form-card" style={{ border: 0, padding: 0 }}>
           <div className="form-field">
             <label htmlFor="name">Full name</label>
@@ -71,7 +79,7 @@ export default function RegisterPage() {
           </div>
           {error && <p className="error-msg">{error}</p>}
           <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? 'Creating account…' : 'Register'}
+            {loading ? 'Creating account…' : 'Register with email'}
           </button>
         </form>
         <p style={{ margin: 0, fontSize: '0.85rem' }}>

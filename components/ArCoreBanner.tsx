@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 
-const STORAGE_KEY = 'furnishar-arcore-banner-dismissed'
+const STORAGE_KEY = 'atelier-arcore-banner-dismissed'
 const PLAY_STORE =
   'https://play.google.com/store/apps/details?id=com.google.ar.core'
 

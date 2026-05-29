@@ -29,7 +29,7 @@ async function poll() {
   }
 }
 
-console.log('FurnishAR worker started')
+console.log('Atelier worker started')
 setInterval(() => {
   void poll().catch(console.error)
 }, POLL_MS)

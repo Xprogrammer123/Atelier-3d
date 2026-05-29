@@ -14,7 +14,7 @@ export function ContactSellerButton({ listingId, email, phone }: Props) {
     await supabase.rpc('increment_listing_enquiries', { listing_uuid: listingId })
 
     if (email) {
-      window.location.href = `mailto:${email}?subject=FurnishAR enquiry`
+      window.location.href = `mailto:${email}?subject=Atelier enquiry`
       return
     }
     if (phone) {
