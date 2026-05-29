@@ -1,6 +1,11 @@
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { CreateListingForm } from '@/components/CreateListingForm'
+import { CreateListingForm } from '@/components/listing/CreateListingForm'
 import { createClient } from '@/lib/supabase/server'
+
+export const metadata = {
+  title: 'New listing — Atelier',
+}
 
 export default async function CreateListingPage() {
   const supabase = await createClient()
@@ -10,12 +15,19 @@ export default async function CreateListingPage() {
   if (!user) redirect('/auth/login')
 
   return (
-    <main className="page-shell">
-      <h1 className="page-title">Create listing</h1>
-      <p className="page-lede">
-        Upload exactly four photos — front, back, left, and right. We&apos;ll generate a 3D model
-        and publish your listing when ready.
-      </p>
+    <main className="create-listing page-shell">
+      <header className="create-listing__page-header">
+        <div>
+          <Link href="/dashboard" className="listing-status__back">
+            ← Dashboard
+          </Link>
+          <p className="catalog-eyebrow">Seller studio</p>
+          <h1 className="page-title">Create a listing</h1>
+          <p className="page-lede">
+            Four photos become a 3D model, AR preview, and shareable QR — all from one upload.
+          </p>
+        </div>
+      </header>
       <CreateListingForm />
     </main>
   )

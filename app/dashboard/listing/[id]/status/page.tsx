@@ -1,9 +1,13 @@
 import { redirect, notFound } from 'next/navigation'
-import { ProcessingStatusClient } from '@/components/ProcessingStatusClient'
+import { ProcessingStatusView } from '@/components/listing/ProcessingStatusView'
 import { getListingById, getProcessingJob } from '@/lib/listings'
 import { createClient } from '@/lib/supabase/server'
 
 type Props = { params: Promise<{ id: string }> }
+
+export const metadata = {
+  title: 'Listing status — Atelier',
+}
 
 export default async function ProcessingStatusPage({ params }: Props) {
   const { id } = await params
@@ -20,7 +24,7 @@ export default async function ProcessingStatusPage({ params }: Props) {
 
   return (
     <main className="page-shell">
-      <ProcessingStatusClient
+      <ProcessingStatusView
         listingId={id}
         initialStatus={job?.status ?? 'queued'}
         glbUrl={listing.glb_url}

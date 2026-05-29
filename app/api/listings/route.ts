@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { ensureProfile } from '@/lib/ensure-profile'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/admin'
 import { queueListingJob } from '@/lib/processing'
@@ -44,6 +45,13 @@ export async function POST(request: Request) {
       { error: `Exactly 4 photos required. Missing: ${missing.join(', ')}` },
       { status: 400 }
     )
+  }
+
+  try {
+    await ensureProfile(user)
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Profile setup failed'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 
   const service = createServiceClient()

@@ -655,3 +655,7 @@ code {
     box-shadow: var(--shadow-soft);
   }
 }
+
+/* Bundled via single entry — do not import landing/listing CSS in layout.tsx */
+@import './landing.css';
+@import './listing-pages.css';
