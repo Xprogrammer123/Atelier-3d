@@ -31,6 +31,12 @@ export default function RegisterPage() {
       setError(authError.message)
       return
     }
+    if (typeof pendo !== 'undefined') {
+      pendo.track('seller_registered', {
+        auth_method: 'email',
+        full_name_provided: Boolean(fullName),
+      })
+    }
     router.push('/dashboard')
     router.refresh()
   }

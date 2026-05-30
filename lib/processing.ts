@@ -12,6 +12,7 @@ function getServiceClient() {
   )
 }
 import { generateQrBuffer } from '@/lib/qr'
+import { pendoTrackServer } from '@/lib/pendo-server'
 import { getArUrl } from '@/lib/types'
 
 const BUCKET = 'listings'
@@ -95,6 +96,17 @@ export async function processListingJob(listingId: string): Promise<void> {
         error_message: null,
       })
       .eq('listing_id', listingId)
+
+    const durationMs = job.started_at
+      ? Date.now() - new Date(job.started_at as string).getTime()
+      : undefined
+    await pendoTrackServer('model_generation_completed', {
+      properties: {
+        listing_id: listingId,
+        processing_duration_ms: durationMs,
+        glb_url: glbPublic.publicUrl,
+      },
+    })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
     await supabase
@@ -102,6 +114,13 @@ export async function processListingJob(listingId: string): Promise<void> {
       .update({ status: 'failed', error_message: message })
       .eq('listing_id', listingId)
     await supabase.from('listings').update({ status: 'failed' }).eq('id', listingId)
+
+    await pendoTrackServer('model_generation_failed', {
+      properties: {
+        listing_id: listingId,
+        error_message: message.substring(0, 200),
+      },
+    })
   } finally {
     await fs.rm(workDir, { recursive: true, force: true }).catch(() => {})
   }

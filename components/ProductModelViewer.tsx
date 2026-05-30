@@ -73,6 +73,13 @@ export function ProductModelViewer({
 
   async function handleActivateAR() {
     onArLaunch?.()
+    if (typeof pendo !== 'undefined') {
+      pendo.track('ar_viewer_activated', {
+        listing_id: src,
+        ar_mode: arEnabled ? 'native' : 'desktop_fallback',
+        device_type: isDesktop ? 'desktop' : 'mobile',
+      })
+    }
     try {
       await viewerRef.current?.activateAR()
     } catch {

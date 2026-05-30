@@ -14,6 +14,14 @@ export function ContactSellerButton({ listingId, email, phone }: Props) {
     const supabase = createClient()
     await supabase.rpc('increment_listing_enquiries', { listing_uuid: listingId })
 
+    const contactMethod = email ? 'email' : phone ? 'phone' : 'unknown'
+    if (typeof pendo !== 'undefined') {
+      pendo.track('seller_contacted', {
+        listing_id: listingId,
+        contact_method: contactMethod,
+      })
+    }
+
     if (email) {
       window.location.href = `mailto:${email}?subject=Atelier enquiry`
       return

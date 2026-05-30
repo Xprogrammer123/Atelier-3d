@@ -99,6 +99,11 @@ export function ProcessingStatusView({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ listingId }),
     })
+    if (typeof pendo !== 'undefined') {
+      pendo.track('model_generation_retried', {
+        listing_id: listingId,
+      })
+    }
     setStatus('queued')
     setRetrying(false)
   }

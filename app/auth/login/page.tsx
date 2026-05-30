@@ -29,6 +29,11 @@ function LoginForm() {
       setError(authError.message)
       return
     }
+    if (typeof pendo !== 'undefined') {
+      pendo.track('seller_logged_in', {
+        auth_method: 'email',
+      })
+    }
     router.push('/dashboard')
     router.refresh()
   }
