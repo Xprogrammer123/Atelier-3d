@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import Image from 'next/image'
 import { DbSetupBanner } from '@/components/DbSetupBanner'
+import { getSiteOrigin } from '@/lib/app-url-server'
 import { getSellerListings } from '@/lib/listings'
 import { createClient } from '@/lib/supabase/server'
 import { formatPrice, getArUrl } from '@/lib/types'
@@ -25,6 +26,7 @@ export default async function DashboardPage() {
   if (!user) redirect('/auth/login')
 
   const { listings, dbSetupRequired } = await getSellerListings(user.id)
+  const siteOrigin = await getSiteOrigin()
 
   return (
     <main className={pageShell}>
@@ -52,7 +54,7 @@ export default async function DashboardPage() {
         <div className="grid gap-4">
           {await Promise.all(
             listings.map(async (listing) => {
-              const arUrl = getArUrl(listing.id)
+              const arUrl = getArUrl(listing.id, siteOrigin)
               const qr = listing.status === 'live' ? await generateQrDataUrl(arUrl) : null
               const jobStatus = listing.processing_jobs?.[0]?.status
 

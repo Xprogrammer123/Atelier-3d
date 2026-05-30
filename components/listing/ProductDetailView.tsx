@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ProductModelViewer } from '@/components/ProductModelViewer'
 import { ContactSellerButton } from '@/components/ContactSellerButton'
 import { ShareLinkButton } from '@/components/ShareLinkButton'
+import { getClientSiteOrigin } from '@/lib/app-url'
 import {
   formatDimensions,
   formatPrice,
@@ -20,8 +21,9 @@ type Props = {
 }
 
 export function ProductDetailView({ listing, qrDataUrl }: Props) {
-  const arUrl = getArUrl(listing.id)
-  const productUrl = getProductUrl(listing.id)
+  const siteOrigin = getClientSiteOrigin()
+  const arUrl = getArUrl(listing.id, siteOrigin)
+  const productUrl = getProductUrl(listing.id, siteOrigin)
   const sellerName = listing.seller?.full_name || 'Seller'
   const dims = formatDimensions(listing.width_cm, listing.depth_cm, listing.height_cm)
 

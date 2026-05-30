@@ -1,27 +1,13 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-
-function getBaseUrl(request: NextRequest): string {
-  const envUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '')
-  if (envUrl && !envUrl.includes('localhost')) {
-    return envUrl
-  }
-
-  const forwardedHost = request.headers.get('x-forwarded-host')
-  const forwardedProto = request.headers.get('x-forwarded-proto') ?? 'https'
-  if (forwardedHost) {
-    return `${forwardedProto}://${forwardedHost}`
-  }
-
-  return new URL(request.url).origin
-}
+import { originFromRequest } from '@/lib/app-url'
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
   const next = searchParams.get('next') ?? '/dashboard'
   const oauthError = searchParams.get('error_description') ?? searchParams.get('error')
-  const base = getBaseUrl(request)
+  const base = originFromRequest(request)
   const safeNext = next.startsWith('/') ? next : '/dashboard'
 
   if (oauthError) {

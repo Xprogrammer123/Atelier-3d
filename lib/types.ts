@@ -93,12 +93,18 @@ export function formatDimensions(
   return parts.join(' × ')
 }
 
-export function getArUrl(listingId: string): string {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
-  return `${base.replace(/\/$/, '')}/ar/${listingId}`
+export function getArUrl(listingId: string, base?: string): string {
+  const origin = (base ?? (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000')).replace(
+    /\/$/,
+    ''
+  )
+  return `${origin}/ar/${listingId}`
 }
 
-export function getProductUrl(listingId: string): string {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
-  return `${base.replace(/\/$/, '')}/product/${listingId}`
+export function getProductUrl(listingId: string, base?: string): string {
+  const origin = (base ?? (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000')).replace(
+    /\/$/,
+    ''
+  )
+  return `${origin}/product/${listingId}`
 }
