@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { ensureProfile } from '@/lib/ensure-profile'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/admin'
+import { pendoTrackServer } from '@/lib/pendo-server'
 import { queueListingJob } from '@/lib/processing'
 import { PHOTO_LABELS, type PhotoLabel } from '@/lib/types'
 
@@ -105,6 +106,20 @@ export async function POST(request: Request) {
   await service.from('processing_jobs').insert({
     listing_id: listingId,
     status: 'queued',
+  })
+
+  const totalFileSize = await PHOTO_LABELS.reduce(async (accP, label) => {
+    const acc = await accP
+    return acc + (photoFiles[label]?.size ?? 0)
+  }, Promise.resolve(0))
+
+  await pendoTrackServer('listing_photo_uploaded', {
+    visitorId: user.id,
+    properties: {
+      listing_id: listingId,
+      photo_labels: PHOTO_LABELS.join(','),
+      total_file_size_bytes: totalFileSize,
+    },
   })
 
   queueListingJob(listingId)

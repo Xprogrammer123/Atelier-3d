@@ -65,6 +65,17 @@ export function CreateListingForm() {
       }
 
       if (body.listingId) {
+        if (typeof pendo !== 'undefined') {
+          const formEl = e.currentTarget
+          pendo.track('listing_created', {
+            listing_id: body.listingId,
+            category: String(fd.get('category') ?? ''),
+            price_cents: Math.round(Number(fd.get('price')) * 100),
+            location: String(fd.get('location') ?? ''),
+            has_dimensions: Boolean(fd.get('width_cm') || fd.get('depth_cm') || fd.get('height_cm')),
+            photo_count: photoCount,
+          })
+        }
         router.push(`/dashboard/listing/${body.listingId}/status`)
         router.refresh()
       }

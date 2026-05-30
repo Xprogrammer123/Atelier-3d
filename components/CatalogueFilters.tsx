@@ -13,6 +13,16 @@ export function CatalogueFilters() {
     const next = new URLSearchParams(params.toString())
     if (value) next.set(key, value)
     else next.delete(key)
+    if (typeof pendo !== 'undefined') {
+      const filtersCount = Array.from(next.values()).filter(Boolean).length
+      pendo.track('catalogue_filtered', {
+        category: next.get('category') ?? '',
+        min_price: next.get('minPrice') ?? '',
+        max_price: next.get('maxPrice') ?? '',
+        location: next.get('location') ?? '',
+        filters_applied_count: filtersCount,
+      })
+    }
     router.push(`/catalogue?${next.toString()}`)
   }
 
