@@ -39,7 +39,7 @@ export async function processListingJob(listingId: string): Promise<void> {
   try {
     const { data: listing } = await supabase
       .from('listings')
-      .select('width_cm, depth_cm, height_cm')
+      .select('width_cm, depth_cm, height_cm, category')
       .eq('id', listingId)
       .single()
 
@@ -65,11 +65,13 @@ export async function processListingJob(listingId: string): Promise<void> {
     const depthM = ((listing?.depth_cm as number | null) ?? 60) / 100
     const heightM = ((listing?.height_cm as number | null) ?? 80) / 100
 
+    const category = (listing?.category as string | null) ?? 'Surfaces'
+
     const outGlb = path.join(workDir, 'model.glb')
     const scriptPath = path.join(process.cwd(), 'scripts/blender/generate.py')
     const blender = process.env.BLENDER_PATH ?? 'blender'
 
-    await runBlender(blender, scriptPath, workDir, outGlb, widthM, depthM, heightM)
+    await runBlender(blender, scriptPath, workDir, outGlb, widthM, depthM, heightM, category)
 
     const glbBody = await fs.readFile(outGlb)
     const glbPath = `${listingId}/model.glb`
@@ -147,7 +149,8 @@ function runBlender(
   output: string,
   widthM: number,
   depthM: number,
-  heightM: number
+  heightM: number,
+  category: string
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     const proc = spawn(blender, [
@@ -160,6 +163,7 @@ function runBlender(
       String(widthM),
       String(depthM),
       String(heightM),
+      category,
     ])
 
     let stderr = ''
