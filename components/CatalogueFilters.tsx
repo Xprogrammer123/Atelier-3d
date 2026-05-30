@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
+import { pendoTrack } from '@/lib/pendo-client'
 import { CATEGORIES } from '@/lib/types'
 import { cn } from '@/lib/cn'
 import { formInput } from '@/lib/ui'
@@ -13,16 +14,14 @@ export function CatalogueFilters() {
     const next = new URLSearchParams(params.toString())
     if (value) next.set(key, value)
     else next.delete(key)
-    if (typeof pendo !== 'undefined') {
-      const filtersCount = Array.from(next.values()).filter(Boolean).length
-      pendo.track('catalogue_filtered', {
-        category: next.get('category') ?? '',
-        min_price: next.get('minPrice') ?? '',
-        max_price: next.get('maxPrice') ?? '',
-        location: next.get('location') ?? '',
-        filters_applied_count: filtersCount,
-      })
-    }
+    const filtersCount = Array.from(next.values()).filter(Boolean).length
+    pendoTrack('catalogue_filtered', {
+      category: next.get('category') ?? '',
+      min_price: next.get('minPrice') ?? '',
+      max_price: next.get('maxPrice') ?? '',
+      location: next.get('location') ?? '',
+      filters_applied_count: filtersCount,
+    })
     router.push(`/catalogue?${next.toString()}`)
   }
 

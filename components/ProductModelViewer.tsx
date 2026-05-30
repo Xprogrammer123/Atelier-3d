@@ -3,6 +3,7 @@
 import '@google/model-viewer'
 import { useEffect, useRef, useState } from 'react'
 import type { ModelViewerElement } from '@/types/model-viewer'
+import { pendoTrack } from '@/lib/pendo-client'
 import { btnAccent } from '@/lib/ui'
 import { cn } from '@/lib/cn'
 
@@ -73,13 +74,12 @@ export function ProductModelViewer({
 
   async function handleActivateAR() {
     onArLaunch?.()
-    if (typeof pendo !== 'undefined') {
-      pendo.track('ar_viewer_activated', {
-        listing_id: src,
-        ar_mode: arEnabled ? 'native' : 'desktop_fallback',
-        device_type: isDesktop ? 'desktop' : 'mobile',
-      })
-    }
+    const nativeAr = ar && !isDesktop
+    pendoTrack('ar_viewer_activated', {
+      listing_id: src,
+      ar_mode: nativeAr ? 'native' : 'desktop_fallback',
+      device_type: isDesktop ? 'desktop' : 'mobile',
+    })
     try {
       await viewerRef.current?.activateAR()
     } catch {
