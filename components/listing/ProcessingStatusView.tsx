@@ -5,6 +5,8 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/client'
 import type { JobStatus } from '@/lib/types'
+import { btnAccent, btnSecondary, catalogEyebrow, pageTitle } from '@/lib/ui'
+import { cn } from '@/lib/cn'
 
 const ProductModelViewer = dynamic(
   () => import('@/components/ProductModelViewer').then((m) => m.ProductModelViewer),
@@ -102,46 +104,62 @@ export function ProcessingStatusView({
   }
 
   return (
-    <div className="listing-status">
-      <header className="listing-status__header">
-        <Link href="/dashboard" className="listing-status__back">
+    <div>
+      <header className="mb-8">
+        <Link
+          href="/dashboard"
+          className="inline-block mb-3 text-[0.82rem] font-semibold text-ink-muted hover:text-accent-clay"
+        >
           ← Dashboard
         </Link>
-        <p className="catalog-eyebrow">Processing listing</p>
-        <h1 className="page-title">{title}</h1>
+        <p className={catalogEyebrow}>Processing listing</p>
+        <h1 className={pageTitle}>{title}</h1>
       </header>
 
-      <div className="listing-status__timeline">
+      <div className="flex mb-8 border border-line rounded-md overflow-hidden bg-surface-paper">
         {STEPS.map((step, i) => (
           <div
             key={step.key}
-            className={`listing-status__step ${i < activeIndex ? 'done' : ''} ${i === activeIndex ? 'active' : ''}`}
+            className={cn(
+              'flex-1 flex flex-col items-center gap-2 py-4 px-2 text-[0.72rem] font-semibold tracking-widest uppercase text-ink-muted border-r border-line last:border-r-0',
+              i < activeIndex && 'text-accent-sage',
+              i === activeIndex && 'bg-[color-mix(in_oklab,var(--color-accent-peach)_40%,white)] text-ink-strong'
+            )}
           >
-            <span className="listing-status__step-dot" />
+            <span
+              className={cn(
+                'size-2 rounded-full bg-line',
+                i === activeIndex &&
+                  'bg-accent-clay shadow-[0_0_0_4px_color-mix(in_oklab,var(--color-accent-clay)_25%,transparent)]',
+                i < activeIndex && 'bg-accent-sage'
+              )}
+            />
             <span>{step.label}</span>
           </div>
         ))}
       </div>
 
-      <div className="listing-status__body">
+      <div>
         {status === 'failed' && (
-          <div className="listing-status__panel listing-status__panel--error">
-            <h2>Generation failed</h2>
-            <p>{error ?? 'Something went wrong during 3D generation.'}</p>
-            <p className="listing-status__hint">
-              Ensure Blender is installed and <code>npm run worker</code> is running, or retry
+          <div className="p-8 bg-[#fdf6f4] border border-[#e8b4a8] rounded-lg text-center grid gap-4 justify-items-center">
+            <h2 className="m-0 font-display text-[1.75rem] font-semibold">Generation failed</h2>
+            <p className="m-0 max-w-md leading-relaxed text-ink-soft">
+              {error ?? 'Something went wrong during 3D generation.'}
+            </p>
+            <p className="m-0 max-w-md text-[0.85rem] text-ink-muted">
+              Ensure Blender is installed and <code className="text-[0.85em] px-[0.4em] py-[0.15em] rounded-xs bg-surface-strong border border-line">npm run worker</code> is running, or retry
               the job.
             </p>
-            <div className="listing-status__actions">
+            <div className="flex flex-wrap gap-[0.65rem] justify-center">
               <button
                 type="button"
-                className="btn-accent"
+                className={btnAccent}
                 disabled={retrying}
                 onClick={() => void handleRetry()}
               >
                 {retrying ? 'Retrying…' : 'Retry generation'}
               </button>
-              <Link href="/dashboard/create" className="btn-secondary">
+              <Link href="/dashboard/create" className={btnSecondary}>
                 New listing
               </Link>
             </div>
@@ -149,10 +167,15 @@ export function ProcessingStatusView({
         )}
 
         {(status === 'queued' || status === 'generating') && (
-          <div className="listing-status__panel">
-            <div className="listing-status__spinner" aria-hidden />
-            <h2>{status === 'queued' ? 'Waiting in queue' : 'Building your 3D model'}</h2>
-            <p>
+          <div className="p-8 bg-surface-paper border border-line rounded-lg text-center grid gap-4 justify-items-center">
+            <div
+              className="size-10 border-[3px] border-line border-t-accent-clay rounded-full animate-listing-spin"
+              aria-hidden
+            />
+            <h2 className="m-0 font-display text-[1.75rem] font-semibold">
+              {status === 'queued' ? 'Waiting in queue' : 'Building your 3D model'}
+            </h2>
+            <p className="m-0 max-w-md leading-relaxed text-ink-soft">
               {status === 'queued'
                 ? 'Your photos are saved. The worker will pick up this job shortly.'
                 : 'Blender is processing your four photos into a GLB. This may take a few minutes.'}
@@ -161,10 +184,12 @@ export function ProcessingStatusView({
         )}
 
         {status === 'complete' && glb && (
-          <div className="listing-status__panel listing-status__panel--success">
-            <h2>Your listing is live</h2>
-            <p>Buyers can preview in 3D and open AR from the product page or your QR code.</p>
-            <div className="product-viewer-wrap listing-status__viewer">
+          <div className="p-8 bg-surface-paper border border-[color-mix(in_oklab,var(--color-accent-sage)_50%,var(--color-line))] rounded-lg text-center grid gap-4 justify-items-center">
+            <h2 className="m-0 font-display text-[1.75rem] font-semibold">Your listing is live</h2>
+            <p className="m-0 max-w-md leading-relaxed text-ink-soft">
+              Buyers can preview in 3D and open AR from the product page or your QR code.
+            </p>
+            <div className="w-full max-w-[480px] aspect-[4/3] rounded-lg border border-line overflow-hidden bg-surface-paper">
               <ProductModelViewer
                 src={glb}
                 alt={title}
@@ -173,14 +198,14 @@ export function ProcessingStatusView({
                 autoRotate
               />
             </div>
-            <div className="listing-status__actions">
-              <Link href={`/product/${listingId}`} className="btn-accent">
+            <div className="flex flex-wrap gap-[0.65rem] justify-center">
+              <Link href={`/product/${listingId}`} className={btnAccent}>
                 View live listing
               </Link>
-              <Link href={`/ar/${listingId}`} className="btn-secondary">
+              <Link href={`/ar/${listingId}`} className={btnSecondary}>
                 Open AR link
               </Link>
-              <Link href="/dashboard" className="btn-secondary">
+              <Link href="/dashboard" className={btnSecondary}>
                 Dashboard
               </Link>
             </div>

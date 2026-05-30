@@ -13,36 +13,21 @@ type Props = {
 
 export function ArPageClient({ listing }: Props) {
   return (
-    <div className="ar-page">
-      <header className="ar-page__header">
+    <div className="fixed inset-0 z-50 bg-gradient-to-b from-[#0d0b09] to-[#18130f] text-white grid grid-rows-[auto_1fr_auto]">
+      <header className="flex items-center justify-between gap-4 px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-2">
         <Link
           href={`/product/${listing.id}`}
-          style={{
-            color: 'white',
-            padding: '0.5rem 0.75rem',
-            border: '1px solid rgba(255,255,255,0.2)',
-            borderRadius: 'var(--radius-sm)',
-          }}
+          className="text-white px-3 py-2 border border-white/20 rounded-sm"
         >
           ← Back
         </Link>
-        <div style={{ textAlign: 'right' }}>
-          <p style={{ margin: 0, fontSize: '0.65rem', letterSpacing: '0.2em', opacity: 0.6 }}>
-            PREVIEWING
-          </p>
-          <p
-            style={{
-              margin: 0,
-              fontFamily: 'var(--font-display)',
-              fontSize: '1.1rem',
-            }}
-          >
-            {listing.title}
-          </p>
+        <div className="text-right">
+          <p className="m-0 text-[0.65rem] tracking-[0.2em] opacity-60">PREVIEWING</p>
+          <p className="m-0 font-display text-[1.1rem]">{listing.title}</p>
         </div>
       </header>
 
-      <div className="ar-page__viewer">
+      <div className="min-h-0 px-4 [&_model-viewer]:w-full [&_model-viewer]:h-full [&_model-viewer]:min-h-[50vh]">
         <ProductModelViewer
           src={listing.glb_url!}
           alt={listing.title}
@@ -54,11 +39,9 @@ export function ArPageClient({ listing }: Props) {
         />
       </div>
 
-      <footer className="ar-page__footer">
+      <footer className="px-5 py-4 pb-[max(1.2rem,env(safe-area-inset-bottom))] border-t border-white/8 bg-[rgba(12,10,8,0.9)] grid gap-3">
         <ArCoreBanner />
-        <p style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>
-          {formatPrice(listing.price_cents)}
-        </p>
+        <p className="m-0 text-xl font-bold">{formatPrice(listing.price_cents)}</p>
         <ContactSellerButton
           listingId={listing.id}
           email={listing.seller?.email ?? null}

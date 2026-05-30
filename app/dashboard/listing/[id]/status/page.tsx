@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation'
 import { ProcessingStatusView } from '@/components/listing/ProcessingStatusView'
 import { getListingById, getProcessingJob } from '@/lib/listings'
 import { createClient } from '@/lib/supabase/server'
+import { pageShell } from '@/lib/ui'
 
 type Props = { params: Promise<{ id: string }> }
 
@@ -23,7 +24,7 @@ export default async function ProcessingStatusPage({ params }: Props) {
   const job = await getProcessingJob(id)
 
   return (
-    <main className="page-shell">
+    <main className={pageShell}>
       <ProcessingStatusView
         listingId={id}
         initialStatus={job?.status ?? 'queued'}

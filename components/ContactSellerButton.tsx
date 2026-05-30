@@ -1,6 +1,7 @@
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
+import { btnPrimary } from '@/lib/ui'
 
 type Props = {
   listingId: string
@@ -23,7 +24,7 @@ export function ContactSellerButton({ listingId, email, phone }: Props) {
   }
 
   return (
-    <button type="button" className="btn-primary" onClick={() => void handleContact()}>
+    <button type="button" className={btnPrimary} onClick={() => void handleContact()}>
       Contact seller
     </button>
   )

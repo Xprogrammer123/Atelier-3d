@@ -40,14 +40,14 @@ export function LandingShowcase() {
   useEffect(() => setMounted(true), [])
 
   return (
-    <div className="landing-showcase">
+    <div className="grid gap-5 grid-cols-1 md:grid-cols-3">
       {PIECES.map((piece, i) => (
         <article
           key={piece.id}
-          className="landing-showcase__card"
-          style={{ ['--delay' as string]: `${i * 120}ms` }}
+          className="flex flex-col bg-white border border-l-line overflow-hidden animate-landing-fade-up transition-[transform,box-shadow] duration-350 hover:-translate-y-1.5 hover:shadow-l-landing"
+          style={{ animationDelay: `${i * 120}ms` }}
         >
-          <div className="landing-showcase__viewer">
+          <div className="aspect-[4/5] bg-gradient-to-b from-l-paper to-l-warm">
             {mounted ? (
               <ProductModelViewer
                 src={piece.src}
@@ -57,12 +57,14 @@ export function LandingShowcase() {
                 cameraOrbit={piece.orbit}
               />
             ) : (
-              <div className="landing-showcase__placeholder" />
+              <div className="w-full h-full bg-l-warm" />
             )}
           </div>
-          <div className="landing-showcase__meta">
-            <span className="landing-showcase__label">{piece.label}</span>
-            <span className="landing-showcase__name">{piece.name}</span>
+          <div className="px-5 pt-[1.1rem] pb-5 flex flex-col gap-[0.2rem]">
+            <span className="text-[0.62rem] font-semibold tracking-[0.22em] uppercase text-l-clay">
+              {piece.label}
+            </span>
+            <span className="font-display text-[1.35rem] font-semibold">{piece.name}</span>
           </div>
         </article>
       ))}

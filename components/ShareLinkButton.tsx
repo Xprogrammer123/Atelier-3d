@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { btnSecondary } from '@/lib/ui'
 
 type Props = {
   url: string
@@ -21,7 +22,7 @@ export function ShareLinkButton({ url, label = 'Copy AR link' }: Props) {
   }
 
   return (
-    <button type="button" className="btn-secondary" onClick={() => void copy()}>
+    <button type="button" className={btnSecondary} onClick={() => void copy()}>
       {copied ? 'Copied!' : label}
     </button>
   )

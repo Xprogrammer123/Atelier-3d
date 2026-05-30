@@ -42,17 +42,17 @@ export function GoogleSignInButton({
   }
 
   return (
-    <div className="auth-oauth">
+    <div className="grid gap-2">
       <button
         type="button"
-        className="btn-google"
+        className="inline-flex items-center justify-center gap-[0.65rem] w-full px-4 py-3 border border-line rounded-sm bg-white text-ink-strong font-semibold text-[0.85rem] transition-[background,border-color] hover:bg-surface-strong hover:border-line-strong disabled:opacity-60 disabled:cursor-not-allowed"
         onClick={() => void handleGoogleSignIn()}
         disabled={loading}
       >
         <GoogleIcon />
         {loading ? 'Redirecting…' : label}
       </button>
-      {error && <p className="error-msg">{error}</p>}
+      {error && <p className="m-0 text-[#8b2e1f] text-[0.85rem]">{error}</p>}
     </div>
   )
 }

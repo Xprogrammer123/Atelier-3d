@@ -3,6 +3,8 @@
 import '@google/model-viewer'
 import { useEffect, useRef, useState } from 'react'
 import type { ModelViewerElement } from '@/types/model-viewer'
+import { btnAccent } from '@/lib/ui'
+import { cn } from '@/lib/cn'
 
 type Props = {
   src: string
@@ -21,18 +23,10 @@ type Props = {
 function ViewerSkeleton({ className }: { className: string }) {
   return (
     <div
-      className={className}
-      style={{
-        position: 'relative',
-        width: '100%',
-        height: '100%',
-        minHeight: 'inherit',
-        display: 'grid',
-        placeItems: 'center',
-        background: 'var(--surface-paper)',
-        color: 'var(--ink-muted)',
-        fontSize: '0.85rem',
-      }}
+      className={cn(
+        'relative w-full h-full min-h-[inherit] grid place-items-center bg-surface-paper text-ink-muted text-[0.85rem]',
+        className
+      )}
       aria-hidden
     >
       Loading 3D preview…
@@ -93,7 +87,7 @@ export function ProductModelViewer({
   const arEnabled = ar && !isDesktop
 
   return (
-    <div className={className} style={{ position: 'relative', width: '100%', height: '100%' }}>
+    <div className={cn('relative w-full h-full', className)}>
       <model-viewer
         ref={viewerRef as React.RefObject<HTMLElement>}
         src={src}
@@ -117,13 +111,7 @@ export function ProductModelViewer({
           <button
             slot="ar-button"
             type="button"
-            className="btn-accent"
-            style={{
-              position: 'absolute',
-              bottom: '1rem',
-              left: '50%',
-              transform: 'translateX(-50%)',
-            }}
+            className={cn(btnAccent, 'absolute bottom-4 left-1/2 -translate-x-1/2')}
             onClick={() => void handleActivateAR()}
           >
             View in your space
@@ -131,43 +119,17 @@ export function ProductModelViewer({
         )}
       </model-viewer>
       {loadState === 'loading' && (
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            display: 'grid',
-            placeItems: 'center',
-            background: 'var(--surface-paper)',
-            color: 'var(--ink-muted)',
-            fontSize: '0.85rem',
-            pointerEvents: 'none',
-          }}
-        >
+        <div className="absolute inset-0 grid place-items-center bg-surface-paper text-ink-muted text-[0.85rem] pointer-events-none">
           Loading 3D model…
         </div>
       )}
       {loadState === 'error' && (
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            display: 'grid',
-            placeItems: 'center',
-            background: '#fde8e4',
-            color: '#8b2e1f',
-            fontSize: '0.85rem',
-          }}
-        >
+        <div className="absolute inset-0 grid place-items-center bg-[#fde8e4] text-[#8b2e1f] text-[0.85rem]">
           Couldn&apos;t load model. Try again later.
         </div>
       )}
       {eagerAr && arEnabled && (
-        <button
-          type="button"
-          className="btn-accent"
-          style={{ marginTop: '0.75rem', width: '100%' }}
-          onClick={() => void handleActivateAR()}
-        >
+        <button type="button" className={cn(btnAccent, 'mt-3 w-full')} onClick={() => void handleActivateAR()}>
           Try in Your Room
         </button>
       )}

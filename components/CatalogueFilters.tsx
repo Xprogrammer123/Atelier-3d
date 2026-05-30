@@ -2,6 +2,8 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { CATEGORIES } from '@/lib/types'
+import { cn } from '@/lib/cn'
+import { formInput } from '@/lib/ui'
 
 export function CatalogueFilters() {
   const router = useRouter()
@@ -16,7 +18,7 @@ export function CatalogueFilters() {
 
   return (
     <form
-      className="filter-bar"
+      className="flex flex-wrap gap-3 p-4 bg-surface-paper border border-line rounded-md"
       onSubmit={(e) => e.preventDefault()}
       aria-label="Filter catalogue"
     >
@@ -25,6 +27,7 @@ export function CatalogueFilters() {
         defaultValue={params.get('category') ?? ''}
         onChange={(e) => update('category', e.target.value)}
         aria-label="Category"
+        className={cn(formInput, 'min-w-32')}
       >
         <option value="">All categories</option>
         {CATEGORIES.map((c) => (
@@ -40,6 +43,7 @@ export function CatalogueFilters() {
         defaultValue={params.get('minPrice') ?? ''}
         onBlur={(e) => update('minPrice', e.target.value)}
         aria-label="Minimum price"
+        className={cn(formInput, 'min-w-32')}
       />
       <input
         type="number"
@@ -48,6 +52,7 @@ export function CatalogueFilters() {
         defaultValue={params.get('maxPrice') ?? ''}
         onBlur={(e) => update('maxPrice', e.target.value)}
         aria-label="Maximum price"
+        className={cn(formInput, 'min-w-32')}
       />
       <input
         type="text"
@@ -56,6 +61,7 @@ export function CatalogueFilters() {
         defaultValue={params.get('location') ?? ''}
         onBlur={(e) => update('location', e.target.value)}
         aria-label="Seller location"
+        className={cn(formInput, 'min-w-32')}
       />
     </form>
   )
