@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { pendoTrackServer } from '@/lib/pendo-server'
 import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
@@ -17,13 +18,20 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    const { data: sessionData, error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (error) {
       return NextResponse.redirect(
         `${base}/auth/login?error=${encodeURIComponent(error.message)}`
       )
     }
+
+    await pendoTrackServer('seller_logged_in', {
+      visitorId: sessionData.user?.id,
+      properties: {
+        auth_method: 'google',
+      },
+    })
   }
 
   const safeNext = next.startsWith('/') ? next : '/dashboard'
