@@ -2,10 +2,11 @@
 
 import { useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { pendoClearSession, pendoIdentify, pendoInitialize } from '@/lib/pendo-client'
 
 export function PendoInitializer() {
   useEffect(() => {
-    pendo.initialize({
+    pendoInitialize({
       visitor: { id: '' },
     })
 
@@ -23,7 +24,7 @@ export function PendoInitializer() {
           .eq('id', user.id)
           .single()
 
-        pendo.identify({
+        pendoIdentify({
           visitor: {
             id: user.id,
             email: profile?.email ?? user.email ?? '',
@@ -37,7 +38,7 @@ export function PendoInitializer() {
       }
 
       if (event === 'SIGNED_OUT') {
-        pendo.clearSession()
+        pendoClearSession()
       }
     })
 

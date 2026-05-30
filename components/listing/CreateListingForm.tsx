@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import { CATEGORIES, PHOTO_LABELS, type PhotoLabel } from '@/lib/types'
+import { pendoTrack } from '@/lib/pendo-client'
 import { btnAccent, btnSecondary, catalogEyebrow, formField, formInput, formLabel } from '@/lib/ui'
 import { cn } from '@/lib/cn'
 
@@ -65,6 +66,14 @@ export function CreateListingForm() {
       }
 
       if (body.listingId) {
+        pendoTrack('listing_created', {
+          listing_id: body.listingId,
+          category: String(fd.get('category') ?? ''),
+          price_cents: Math.round(Number(fd.get('price')) * 100),
+          location: String(fd.get('location') ?? ''),
+          has_dimensions: Boolean(fd.get('width_cm') || fd.get('depth_cm') || fd.get('height_cm')),
+          photo_count: photoCount,
+        })
         router.push(`/dashboard/listing/${body.listingId}/status`)
         router.refresh()
       }

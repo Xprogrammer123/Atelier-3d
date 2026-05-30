@@ -5,6 +5,7 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/client'
 import type { JobStatus } from '@/lib/types'
+import { pendoTrack } from '@/lib/pendo-client'
 import { btnAccent, btnSecondary, catalogEyebrow, pageTitle } from '@/lib/ui'
 import { cn } from '@/lib/cn'
 
@@ -98,6 +99,9 @@ export function ProcessingStatusView({
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ listingId }),
+    })
+    pendoTrack('model_generation_retried', {
+      listing_id: listingId,
     })
     setStatus('queued')
     setRetrying(false)
