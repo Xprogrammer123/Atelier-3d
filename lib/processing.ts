@@ -37,6 +37,12 @@ export async function processListingJob(listingId: string): Promise<void> {
   await fs.mkdir(workDir, { recursive: true })
 
   try {
+    const { data: listing } = await supabase
+      .from('listings')
+      .select('width_cm, depth_cm, height_cm')
+      .eq('id', listingId)
+      .single()
+
     const { data: photos } = await supabase
       .from('listing_photos')
       .select('*')
@@ -48,15 +54,22 @@ export async function processListingJob(listingId: string): Promise<void> {
 
     for (const photo of photos) {
       const res = await fetch(photo.public_url)
+      if (!res.ok) {
+        throw new Error(`Failed to download ${photo.label} photo (${res.status})`)
+      }
       const buf = Buffer.from(await res.arrayBuffer())
       await fs.writeFile(path.join(workDir, `${photo.label}.jpg`), buf)
     }
+
+    const widthM = ((listing?.width_cm as number | null) ?? 100) / 100
+    const depthM = ((listing?.depth_cm as number | null) ?? 60) / 100
+    const heightM = ((listing?.height_cm as number | null) ?? 80) / 100
 
     const outGlb = path.join(workDir, 'model.glb')
     const scriptPath = path.join(process.cwd(), 'scripts/blender/generate.py')
     const blender = process.env.BLENDER_PATH ?? 'blender'
 
-    await runBlender(blender, scriptPath, workDir, outGlb)
+    await runBlender(blender, scriptPath, workDir, outGlb, widthM, depthM, heightM)
 
     const glbBody = await fs.readFile(outGlb)
     const glbPath = `${listingId}/model.glb`
@@ -67,6 +80,7 @@ export async function processListingJob(listingId: string): Promise<void> {
     if (uploadError) throw uploadError
 
     const { data: glbPublic } = supabase.storage.from(BUCKET).getPublicUrl(glbPath)
+    const glbUrl = `${glbPublic.publicUrl}?v=${Date.now()}`
     const front = photos.find((p) => p.label === 'front')
     const posterUrl = front?.public_url ?? null
 
@@ -82,7 +96,7 @@ export async function processListingJob(listingId: string): Promise<void> {
       .from('listings')
       .update({
         status: 'live',
-        glb_url: glbPublic.publicUrl,
+        glb_url: glbUrl,
         poster_url: posterUrl,
         qr_path: qrPath,
       })
@@ -104,7 +118,7 @@ export async function processListingJob(listingId: string): Promise<void> {
       properties: {
         listing_id: listingId,
         processing_duration_ms: durationMs,
-        glb_url: glbPublic.publicUrl,
+        glb_url: glbUrl,
       },
     })
   } catch (err) {
@@ -130,7 +144,10 @@ function runBlender(
   blender: string,
   script: string,
   workDir: string,
-  output: string
+  output: string,
+  widthM: number,
+  depthM: number,
+  heightM: number
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     const proc = spawn(blender, [
@@ -140,6 +157,9 @@ function runBlender(
       '--',
       workDir,
       output,
+      String(widthM),
+      String(depthM),
+      String(heightM),
     ])
 
     let stderr = ''

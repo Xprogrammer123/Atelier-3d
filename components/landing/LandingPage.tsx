@@ -62,16 +62,16 @@ export function LandingPage() {
           <div>
             <div className="flex justify-between items-baseline mb-6 gap-4">
               <span className="m-0 text-[0.65rem] font-semibold tracking-[0.32em] uppercase text-l-clay">
-                Atelier · AR Showroom
+                Atelier
               </span>
               <span className="font-display text-[0.9rem] tracking-[0.2em] text-l-ink-soft">2026</span>
             </div>
             <h1 className="m-0 mb-6 font-display font-semibold leading-[0.92] tracking-tight">
-              <span className="block text-[clamp(1rem,2vw,1.15rem)] font-medium tracking-[0.35em] uppercase text-l-clay mb-3">
+              <span className="block text-[clamp(3rem,9vw,6.25rem)] text-l-ink">
                 Place it
               </span>
-              <span className="block text-[clamp(3rem,9vw,6.25rem)] text-l-ink">
-                before you <em className="italic text-l-clay">buy it.</em>
+              <span className="block text-[clamp(1rem,2vw,1.15rem)] font-bold tracking-[0.35em] uppercase text-l-clay mb-3 ">
+                Before you <em className="italic text-l-clay">Buy it.</em>
               </span>
             </h1>
             <p className="m-0 mb-8 max-w-[26rem] text-[clamp(1.02rem,1.5vw,1.15rem)] leading-[1.75] text-l-ink-soft">

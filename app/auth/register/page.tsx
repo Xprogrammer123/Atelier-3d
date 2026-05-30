@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton'
 import { createClient } from '@/lib/supabase/client'
+import { pendoTrack } from '@/lib/pendo-client'
 import { btnPrimary, formField, formInput, formLabel, pageShell, pageTitle } from '@/lib/ui'
 import { cn } from '@/lib/cn'
 
@@ -31,12 +32,10 @@ export default function RegisterPage() {
       setError(authError.message)
       return
     }
-    if (typeof pendo !== 'undefined') {
-      pendo.track('seller_registered', {
-        auth_method: 'email',
-        full_name_provided: Boolean(fullName),
-      })
-    }
+    pendoTrack('seller_registered', {
+      auth_method: 'email',
+      full_name_provided: Boolean(fullName),
+    })
     router.push('/dashboard')
     router.refresh()
   }
