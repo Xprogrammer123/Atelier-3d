@@ -20,9 +20,8 @@ export function GoogleSignInButton({
     setError(null)
 
     const supabase = createClient()
-    const base =
-      process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ?? window.location.origin
-    const redirectTo = `${base}/auth/callback?next=${encodeURIComponent(next)}`
+    // Always use the current origin so PKCE cookies match the callback URL
+    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`
 
     const { error: authError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
