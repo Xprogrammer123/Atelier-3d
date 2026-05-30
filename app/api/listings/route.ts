@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/admin'
 import { pendoTrackServer } from '@/lib/pendo-server'
 import { queueListingJob } from '@/lib/processing'
-import { PHOTO_LABELS, type PhotoLabel } from '@/lib/types'
+import { PHOTO_LABELS, type ModelSource, type PhotoLabel } from '@/lib/types'
 
 const BUCKET = 'listings'
 
@@ -27,6 +27,8 @@ export async function POST(request: Request) {
   const width_cm = form.get('width_cm') ? Number(form.get('width_cm')) : null
   const depth_cm = form.get('depth_cm') ? Number(form.get('depth_cm')) : null
   const height_cm = form.get('height_cm') ? Number(form.get('height_cm')) : null
+  const modelSourceRaw = String(form.get('model_source') ?? 'photos')
+  const modelSource: ModelSource = modelSourceRaw === 'upload' ? 'upload' : 'photos'
 
   if (!title || !description || !category || Number.isNaN(price)) {
     return NextResponse.json({ error: 'Invalid listing fields' }, { status: 400 })
@@ -40,10 +42,17 @@ export async function POST(request: Request) {
     }
   }
 
-  const missing = PHOTO_LABELS.filter((l) => !photoFiles[l])
-  if (missing.length > 0) {
+  if (modelSource === 'photos') {
+    const missing = PHOTO_LABELS.filter((l) => !photoFiles[l])
+    if (missing.length > 0) {
+      return NextResponse.json(
+        { error: `Exactly 4 photos required. Missing: ${missing.join(', ')}` },
+        { status: 400 }
+      )
+    }
+  } else if (!photoFiles.front) {
     return NextResponse.json(
-      { error: `Exactly 4 photos required. Missing: ${missing.join(', ')}` },
+      { error: 'Upload at least a front photo for your catalogue listing.' },
       { status: 400 }
     )
   }
@@ -81,7 +90,8 @@ export async function POST(request: Request) {
   const listingId = listing.id
 
   for (const label of PHOTO_LABELS) {
-    const file = photoFiles[label]!
+    const file = photoFiles[label]
+    if (!file) continue
     const storagePath = `${listingId}/photos/${label}.jpg`
     const buffer = Buffer.from(await file.arrayBuffer())
 
@@ -117,12 +127,18 @@ export async function POST(request: Request) {
     visitorId: user.id,
     properties: {
       listing_id: listingId,
-      photo_labels: PHOTO_LABELS.join(','),
+      photo_labels: Object.keys(photoFiles).join(','),
+      model_source: modelSource,
       total_file_size_bytes: totalFileSize,
     },
   })
 
-  queueListingJob(listingId)
+  if (modelSource === 'photos') {
+    queueListingJob(listingId)
+  }
 
-  return NextResponse.json({ listingId })
+  return NextResponse.json({
+    listingId,
+    pendingModelUpload: modelSource === 'upload',
+  })
 }

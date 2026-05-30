@@ -48,42 +48,53 @@ export async function processListingJob(listingId: string): Promise<void> {
       .select('*')
       .eq('listing_id', listingId)
 
-    if (!photos || photos.length < 4) {
-      throw new Error('Four photos required')
-    }
-
-    for (const photo of photos) {
-      const res = await fetch(photo.public_url)
-      if (!res.ok) {
-        throw new Error(`Failed to download ${photo.label} photo (${res.status})`)
-      }
-      const buf = Buffer.from(await res.arrayBuffer())
-      await fs.writeFile(path.join(workDir, `${photo.label}.jpg`), buf)
-    }
-
-    const widthM = ((listing?.width_cm as number | null) ?? 100) / 100
-    const depthM = ((listing?.depth_cm as number | null) ?? 60) / 100
-    const heightM = ((listing?.height_cm as number | null) ?? 80) / 100
-
-    const category = (listing?.category as string | null) ?? 'Surfaces'
-
-    const outGlb = path.join(workDir, 'model.glb')
-    const scriptPath = path.join(process.cwd(), 'scripts/blender/generate.py')
-    const blender = process.env.BLENDER_PATH ?? 'blender'
-
-    await runBlender(blender, scriptPath, workDir, outGlb, widthM, depthM, heightM, category)
-
-    const glbBody = await fs.readFile(outGlb)
     const glbPath = `${listingId}/model.glb`
-    const { error: uploadError } = await supabase.storage
+    const { data: existingGlb, error: existingGlbError } = await supabase.storage
       .from(BUCKET)
-      .upload(glbPath, glbBody, { contentType: 'model/gltf-binary', upsert: true })
+      .download(glbPath)
 
-    if (uploadError) throw uploadError
+    let glbUrl: string
 
-    const { data: glbPublic } = supabase.storage.from(BUCKET).getPublicUrl(glbPath)
-    const glbUrl = `${glbPublic.publicUrl}?v=${Date.now()}`
-    const front = photos.find((p) => p.label === 'front')
+    if (!existingGlbError && existingGlb) {
+      const { data: glbPublic } = supabase.storage.from(BUCKET).getPublicUrl(glbPath)
+      glbUrl = `${glbPublic.publicUrl}?v=${Date.now()}`
+    } else {
+      if (!photos || photos.length < 4) {
+        throw new Error('Upload a GLB scan or provide four photos for generation')
+      }
+
+      for (const photo of photos) {
+        const res = await fetch(photo.public_url)
+        if (!res.ok) {
+          throw new Error(`Failed to download ${photo.label} photo (${res.status})`)
+        }
+        const buf = Buffer.from(await res.arrayBuffer())
+        await fs.writeFile(path.join(workDir, `${photo.label}.jpg`), buf)
+      }
+
+      const widthM = ((listing?.width_cm as number | null) ?? 100) / 100
+      const depthM = ((listing?.depth_cm as number | null) ?? 60) / 100
+      const heightM = ((listing?.height_cm as number | null) ?? 80) / 100
+
+      const category = (listing?.category as string | null) ?? 'Surfaces'
+
+      const outGlb = path.join(workDir, 'model.glb')
+      const scriptPath = path.join(process.cwd(), 'scripts/blender/generate.py')
+      const blender = process.env.BLENDER_PATH ?? 'blender'
+
+      await runBlender(blender, scriptPath, workDir, outGlb, widthM, depthM, heightM, category)
+
+      const glbBody = await fs.readFile(outGlb)
+      const { error: uploadError } = await supabase.storage
+        .from(BUCKET)
+        .upload(glbPath, glbBody, { contentType: 'model/gltf-binary', upsert: true })
+
+      if (uploadError) throw uploadError
+
+      const { data: glbPublic } = supabase.storage.from(BUCKET).getPublicUrl(glbPath)
+      glbUrl = `${glbPublic.publicUrl}?v=${Date.now()}`
+    }
+    const front = photos?.find((p) => p.label === 'front')
     const posterUrl = front?.public_url ?? null
 
     const arUrl = getArUrl(listingId)

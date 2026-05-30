@@ -15,6 +15,10 @@ export type PhotoLabel = 'front' | 'back' | 'left' | 'right'
 
 export const PHOTO_LABELS: PhotoLabel[] = ['front', 'back', 'left', 'right']
 
+export type ModelSource = 'photos' | 'upload'
+
+export const MAX_GLB_BYTES = 50 * 1024 * 1024
+
 export type ListingStatus = 'processing' | 'live' | 'sold' | 'failed' | 'draft'
 export type JobStatus = 'queued' | 'generating' | 'complete' | 'failed'
 
