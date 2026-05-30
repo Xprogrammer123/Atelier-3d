@@ -20,14 +20,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-
-  // Reduces "styles disappeared" after hot reload (stale webpack cache)
-  webpack: (config, { dev }) => {
-    if (dev) {
-      config.cache = false
-    }
-    return config
-  },
 }
 
 export default nextConfig

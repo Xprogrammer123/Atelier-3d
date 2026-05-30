@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "dev:turbo": "next dev --turbo",
-    "dev:fresh": "rm -rf .next && next dev",
+    "dev:fresh": "bash scripts/dev-fresh.sh",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
