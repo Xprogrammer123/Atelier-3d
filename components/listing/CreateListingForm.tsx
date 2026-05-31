@@ -9,8 +9,21 @@ import { CATEGORIES, MAX_SCAN_SECONDS, MAX_SCAN_VIDEO_BYTES, MIN_SCAN_SECONDS } 
 import { listingScanVideoPath } from '@/lib/storage-paths'
 import { scanVideoFileExtension } from '@/lib/scan-recording'
 import { pendoTrack } from '@/lib/pendo-client'
+import { ProcessingStepLoader } from '@/components/listing/ProcessingStepLoader'
 import { btnAccent, btnSecondary, catalogEyebrow, formField, formInput, formLabel } from '@/lib/ui'
 import { cn } from '@/lib/cn'
+
+const PUBLISH_STEPS = [
+  { key: 'create', label: 'Create listing' },
+  { key: 'upload', label: 'Upload scan' },
+  { key: 'queue', label: 'Start 3D' },
+] as const
+
+function publishStepIndex(phase: string | null): number {
+  if (phase?.startsWith('Uploading')) return 1
+  if (phase?.startsWith('Starting')) return 2
+  return 0
+}
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
@@ -109,7 +122,28 @@ export function CreateListingForm() {
   }
 
   return (
-    <form onSubmit={(e) => void handleSubmit(e)}>
+    <>
+      {loading && (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center p-6 bg-[color-mix(in_oklab,var(--color-ink-strong)_35%,transparent)] backdrop-blur-[2px]"
+          role="status"
+          aria-live="polite"
+          aria-label="Publishing listing"
+        >
+          <div className="w-full max-w-lg p-6 sm:p-8 bg-surface-paper border border-line rounded-lg shadow-lift animate-listing-step-pop">
+            <ProcessingStepLoader
+              steps={[...PUBLISH_STEPS]}
+              activeIndex={publishStepIndex(uploadPhase)}
+              title={uploadPhase ?? 'Publishing…'}
+              message="Hang tight — your scan and catalogue photo are being saved."
+              showSpinner
+              compact
+            />
+          </div>
+        </div>
+      )}
+
+      <form onSubmit={(e) => void handleSubmit(e)}>
       <div className="grid gap-8 lg:grid-cols-[1fr_300px] lg:items-start">
         <div className="grid gap-8">
           <section className="p-7 bg-surface-paper border border-line rounded-lg shadow-soft">
@@ -233,7 +267,8 @@ export function CreateListingForm() {
           </div>
         </aside>
       </div>
-    </form>
+      </form>
+    </>
   )
 }
 
