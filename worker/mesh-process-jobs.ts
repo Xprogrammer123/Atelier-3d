@@ -1,6 +1,6 @@
 /**
- * Polls scan-video jobs and runs the DG-Mesh pipeline.
- * Run on a GPU machine: npm run mesh-worker
+ * Polls scan jobs and runs the DG-Mesh pipeline.
+ * Run: npm run worker
  */
 import { loadEnv, requireEnv } from '../lib/load-env'
 
@@ -30,7 +30,7 @@ async function poll() {
   }
 }
 
-console.log('Atelier mesh worker started (scan → DG-Mesh pipeline)')
+console.log('Atelier mesh worker started')
 setInterval(() => {
   void poll().catch(console.error)
 }, POLL_MS)
