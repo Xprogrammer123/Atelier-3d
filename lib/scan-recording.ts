@@ -21,3 +21,25 @@ export function getScanRecorderMimeType(): string {
 export function scanVideoFileExtension(mimeType: string): 'webm' | 'mp4' {
   return mimeType.includes('mp4') ? 'mp4' : 'webm'
 }
+
+export function isLikelyMobileDevice(): boolean {
+  if (typeof navigator === 'undefined') return false
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+}
+
+/** Prefer rear camera on phones; use front webcam directly on desktop (faster startup). */
+export function getScanVideoConstraints(): MediaStreamConstraints {
+  return {
+    video: isLikelyMobileDevice()
+      ? {
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        }
+      : {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+    audio: false,
+  }
+}

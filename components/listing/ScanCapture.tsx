@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { getScanRecorderMimeType } from '@/lib/scan-recording'
+import { getScanRecorderMimeType, getScanVideoConstraints, isLikelyMobileDevice } from '@/lib/scan-recording'
 import { MAX_SCAN_SECONDS, MIN_SCAN_SECONDS } from '@/lib/types'
 import { cn } from '@/lib/cn'
 
@@ -31,6 +31,7 @@ export function ScanCapture({ onRecordingReady, disabled }: Props) {
   const [elapsed, setElapsed] = useState(0)
   const [hasRecording, setHasRecording] = useState(false)
   const [durationError, setDurationError] = useState<string | null>(null)
+  const isMobile = isLikelyMobileDevice()
 
   const revokePreviewUrl = useCallback(() => {
     if (previewUrlRef.current) {
@@ -86,14 +87,7 @@ export function ScanCapture({ onRecordingReady, disabled }: Props) {
     async function startCamera() {
       setCameraError(null)
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: { ideal: 'environment' },
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-          },
-          audio: false,
-        })
+        const stream = await navigator.mediaDevices.getUserMedia(getScanVideoConstraints())
         if (cancelled) {
           stream.getTracks().forEach((t) => t.stop())
           return
@@ -146,14 +140,7 @@ export function ScanCapture({ onRecordingReady, disabled }: Props) {
     clearRecording()
     setCameraError(null)
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: { ideal: 'environment' },
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
-        audio: false,
-      })
+      const stream = await navigator.mediaDevices.getUserMedia(getScanVideoConstraints())
       streamRef.current = stream
       await attachLiveStream(stream)
       setCameraReady(true)
@@ -295,6 +282,13 @@ export function ScanCapture({ onRecordingReady, disabled }: Props) {
         Walk slowly around your piece for at least {MIN_SCAN_SECONDS} seconds (up to {MAX_SCAN_SECONDS} seconds).
         Keep the full item in frame with even lighting.
       </p>
+
+      {!isMobile && (
+        <p className="m-0 text-[0.85rem] text-ink-soft">
+          On a laptop, the webcam works for testing — for real listings, use a phone and walk around the piece with
+          the back camera.
+        </p>
+      )}
 
       {durationError && (
         <p className="m-0 text-[0.85rem] text-[#8b2e1f]" role="alert">

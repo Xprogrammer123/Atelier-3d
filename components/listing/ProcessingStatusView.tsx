@@ -180,8 +180,8 @@ export function ProcessingStatusView({
             </h2>
             <p className="m-0 max-w-md leading-relaxed text-ink-soft">
               {status === 'queued'
-                ? 'Your scan video is saved. The mesh worker will start reconstruction shortly.'
-                : 'DG-Mesh is turning your walk-around video into a 3D mesh. This can take a while on first runs.'}
+                ? 'Your scan video is saved. Reconstruction starts when the mesh worker is running (npm run worker). If this stays here, the worker is not started yet.'
+                : 'DG-Mesh is turning your walk-around video into a 3D mesh. First runs can take a long time on GPU — this is normal and not caused by which camera you used.'}
             </p>
           </div>
         )}
