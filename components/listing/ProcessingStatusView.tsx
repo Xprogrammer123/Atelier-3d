@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/client'
-import type { JobStatus, JobType } from '@/lib/types'
+import type { JobStatus } from '@/lib/types'
 import { pendoTrack } from '@/lib/pendo-client'
 import { btnAccent, btnSecondary, catalogEyebrow, pageTitle } from '@/lib/ui'
 import { cn } from '@/lib/cn'
@@ -17,41 +17,26 @@ const ProductModelViewer = dynamic(
 type Props = {
   listingId: string
   initialStatus: JobStatus
-  jobType: JobType
   glbUrl: string | null
   posterUrl: string | null
   title: string
   errorMessage: string | null
 }
 
-const STEPS_BY_TYPE: Record<JobType, { key: string; label: string }[]> = {
-  scan: [
-    { key: 'queued', label: 'Queued' },
-    { key: 'generating', label: 'Reconstructing' },
-    { key: 'complete', label: 'Live' },
-  ],
-  upload: [
-    { key: 'queued', label: 'Queued' },
-    { key: 'generating', label: 'Preparing AR' },
-    { key: 'complete', label: 'Live' },
-  ],
-  photos: [
-    { key: 'queued', label: 'Queued' },
-    { key: 'generating', label: 'Generating' },
-    { key: 'complete', label: 'Live' },
-  ],
-}
+const STEPS = [
+  { key: 'queued', label: 'Queued' },
+  { key: 'generating', label: 'Reconstructing' },
+  { key: 'complete', label: 'Live' },
+] as const
 
 export function ProcessingStatusView({
   listingId,
   initialStatus,
-  jobType,
   glbUrl,
   posterUrl,
   title,
   errorMessage,
 }: Props) {
-  const STEPS = STEPS_BY_TYPE[jobType]
   const [status, setStatus] = useState<JobStatus>(initialStatus)
   const [glb, setGlb] = useState(glbUrl)
   const [error, setError] = useState(errorMessage)
@@ -161,16 +146,12 @@ export function ProcessingStatusView({
       <div>
         {status === 'failed' && (
           <div className="p-8 bg-[#fdf6f4] border border-[#e8b4a8] rounded-lg text-center grid gap-4 justify-items-center">
-            <h2 className="m-0 font-display text-[1.75rem] font-semibold">Generation failed</h2>
+            <h2 className="m-0 font-display text-[1.75rem] font-semibold">Reconstruction failed</h2>
             <p className="m-0 max-w-md leading-relaxed text-ink-soft">
-              {error ?? 'Something went wrong during 3D generation.'}
+              {error ?? 'Something went wrong during mesh reconstruction.'}
             </p>
             <p className="m-0 max-w-md text-[0.85rem] text-ink-muted">
-              {jobType === 'scan'
-                ? 'Ensure ffmpeg is installed and npm run mesh-worker is running on a GPU machine with DG_MESH_ROOT set, or retry the job.'
-                : jobType === 'upload'
-                  ? 'Upload a valid GLB file and retry, or create a new listing.'
-                  : 'Ensure Blender is installed and npm run worker is running, or retry the job.'}
+              Ensure ffmpeg is installed and <code className="text-[0.85em] px-[0.4em] py-[0.15em] rounded-xs bg-surface-strong border border-line">npm run worker</code> is running on a GPU machine with DG_MESH_ROOT set.
             </p>
             <div className="flex flex-wrap gap-[0.65rem] justify-center">
               <button
@@ -179,7 +160,7 @@ export function ProcessingStatusView({
                 disabled={retrying}
                 onClick={() => void handleRetry()}
               >
-                {retrying ? 'Retrying…' : 'Retry generation'}
+                {retrying ? 'Retrying…' : 'Retry reconstruction'}
               </button>
               <Link href="/dashboard/create" className={btnSecondary}>
                 New listing
@@ -195,22 +176,12 @@ export function ProcessingStatusView({
               aria-hidden
             />
             <h2 className="m-0 font-display text-[1.75rem] font-semibold">
-              {status === 'queued'
-                ? 'Waiting in queue'
-                : jobType === 'scan'
-                  ? 'Reconstructing from your scan'
-                  : 'Building your 3D model'}
+              {status === 'queued' ? 'Waiting in queue' : 'Reconstructing from your scan'}
             </h2>
             <p className="m-0 max-w-md leading-relaxed text-ink-soft">
               {status === 'queued'
-                ? jobType === 'scan'
-                  ? 'Your scan video is saved. The mesh worker will start reconstruction shortly.'
-                  : 'Your upload is saved. The worker will pick up this job shortly.'
-                : jobType === 'scan'
-                  ? 'DG-Mesh is turning your walk-around video into a 3D mesh. This can take a long time on first runs.'
-                  : jobType === 'upload'
-                    ? 'Preparing AR preview and QR code for your model.'
-                    : 'Blender is processing your four photos into a GLB. This may take a few minutes.'}
+                ? 'Your scan video is saved. The mesh worker will start reconstruction shortly.'
+                : 'DG-Mesh is turning your walk-around video into a 3D mesh. This can take a while on first runs.'}
             </p>
           </div>
         )}

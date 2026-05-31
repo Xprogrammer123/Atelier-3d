@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/admin'
-import { queueListingJob } from '@/lib/processing'
 import { queueScanMeshJob } from '@/lib/mesh-processing'
 
 export async function POST(request: Request) {
@@ -29,24 +28,13 @@ export async function POST(request: Request) {
   }
 
   const service = createServiceClient()
-
-  const { data: job } = await service
-    .from('processing_jobs')
-    .select('job_type')
-    .eq('listing_id', listingId)
-    .single()
-
   await service
     .from('processing_jobs')
     .update({ status: 'queued', error_message: null, started_at: null, completed_at: null })
     .eq('listing_id', listingId)
   await service.from('listings').update({ status: 'processing' }).eq('id', listingId)
 
-  if (job?.job_type === 'scan') {
-    queueScanMeshJob(listingId)
-  } else {
-    queueListingJob(listingId)
-  }
+  queueScanMeshJob(listingId)
 
   return NextResponse.json({ ok: true })
 }

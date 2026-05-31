@@ -32,7 +32,7 @@ export async function GET(_request: Request, { params }: Params) {
 
   return NextResponse.json({
     status: job?.status ?? 'queued',
-    job_type: job?.job_type ?? 'photos',
+    job_type: job?.job_type ?? 'scan',
     glb_url: listing.glb_url,
     poster_url: listing.poster_url,
     listing_status: listing.status,

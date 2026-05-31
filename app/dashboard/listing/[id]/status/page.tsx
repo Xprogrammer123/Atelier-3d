@@ -1,7 +1,6 @@
 import { redirect, notFound } from 'next/navigation'
 import { ProcessingStatusView } from '@/components/listing/ProcessingStatusView'
 import { getListingById, getProcessingJob } from '@/lib/listings'
-import type { JobType } from '@/lib/types'
 import { createClient } from '@/lib/supabase/server'
 import { pageShell } from '@/lib/ui'
 
@@ -29,7 +28,6 @@ export default async function ProcessingStatusPage({ params }: Props) {
       <ProcessingStatusView
         listingId={id}
         initialStatus={job?.status ?? 'queued'}
-        jobType={(job?.job_type as JobType | undefined) ?? 'photos'}
         glbUrl={listing.glb_url}
         posterUrl={listing.poster_url}
         title={listing.title}

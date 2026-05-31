@@ -15,11 +15,8 @@ export type PhotoLabel = 'front' | 'back' | 'left' | 'right'
 
 export const PHOTO_LABELS: PhotoLabel[] = ['front', 'back', 'left', 'right']
 
-export type ModelSource = 'photos' | 'upload' | 'scan'
+export type JobType = 'scan'
 
-export type JobType = ModelSource
-
-export const MAX_GLB_BYTES = 50 * 1024 * 1024
 export const MAX_SCAN_VIDEO_BYTES = 100 * 1024 * 1024
 export const MAX_SCAN_SECONDS = 60
 

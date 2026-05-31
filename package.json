@@ -9,8 +9,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "worker": "tsx worker/process-jobs.ts",
-    "mesh-worker": "tsx worker/mesh-process-jobs.ts",
+    "worker": "tsx worker/mesh-process-jobs.ts",
     "seed:products": "tsx scripts/seed-demo-products.ts"
   },
   "dependencies": {

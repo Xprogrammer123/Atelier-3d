@@ -3,8 +3,8 @@ import { LandingHeroVisual } from '@/components/landing/LandingHeroVisual'
 import { LandingShowcase } from '@/components/landing/LandingShowcase'
 
 const STATS = [
-  { value: '4', label: 'Photos to list' },
-  { value: '3D', label: 'Auto-generated model' },
+  { value: '1', label: 'Scan to list' },
+  { value: '3D', label: 'Mesh reconstruction' },
   { value: '0', label: 'Apps to download' },
 ]
 
@@ -158,10 +158,10 @@ export function LandingPage() {
           <p className="m-0 text-[0.65rem] font-semibold tracking-[0.32em] uppercase text-l-clay">
             For sellers
           </p>
-          <h3 className="m-0 font-display text-[1.65rem] font-semibold">Four angles in. One GLB out.</h3>
+          <h3 className="m-0 font-display text-[1.65rem] font-semibold">Scan in. Model out.</h3>
           <p className="m-0 leading-relaxed text-l-ink-soft text-[0.92rem]">
-            Front, back, left, right — our Blender pipeline builds the model, publishes your
-            listing, and mints a QR for tags, Instagram, and marketplaces.
+            Walk around the piece in Atelier — DG-Mesh builds the 3D model, publishes your listing,
+            and mints a QR for tags, Instagram, and marketplaces.
           </p>
           <Link
             href="/dashboard/create"

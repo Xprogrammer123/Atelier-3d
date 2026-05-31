@@ -28,7 +28,7 @@ export default async function CreateListingPage() {
           <p className={catalogEyebrow}>Seller studio</p>
           <h1 className={pageTitle}>Create a listing</h1>
           <p className={pageLede}>
-            Scan in Atelier, upload a GLB, or use four photos — your listing gets 3D + AR.
+            Scan your piece in Atelier — we turn the video into a 3D model for AR.
           </p>
         </div>
       </header>
