@@ -3,6 +3,13 @@ import fs from 'fs/promises'
 import path from 'path'
 import { loadEnv } from '@/lib/load-env'
 import { createNodeSupabaseClient } from '@/lib/supabase/node-client'
+import {
+  cleanupWorkDir,
+  failListingJob,
+  finalizeListingFromGlb,
+  glbExistsInStorage,
+} from '@/lib/finalize-listing'
+import { LISTINGS_BUCKET, listingGlbPath } from '@/lib/storage-paths'
 
 function getServiceClient() {
   loadEnv()
@@ -11,11 +18,6 @@ function getServiceClient() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 }
-import { generateQrBuffer } from '@/lib/qr'
-import { pendoTrackServer } from '@/lib/pendo-server'
-import { getArUrl } from '@/lib/types'
-
-const BUCKET = 'listings'
 
 export async function processListingJob(listingId: string): Promise<void> {
   const supabase = getServiceClient()
@@ -28,15 +30,29 @@ export async function processListingJob(listingId: string): Promise<void> {
 
   if (!job || job.status === 'generating' || job.status === 'complete') return
 
+  const jobType = (job.job_type as string | null) ?? 'photos'
+  if (jobType === 'scan') return
+
+  const startedAt = new Date().toISOString()
+
   await supabase
     .from('processing_jobs')
-    .update({ status: 'generating', started_at: new Date().toISOString() })
+    .update({ status: 'generating', started_at: startedAt, error_message: null })
     .eq('listing_id', listingId)
 
   const workDir = path.join('/tmp', 'atelier', listingId)
   await fs.mkdir(workDir, { recursive: true })
 
   try {
+    if (await glbExistsInStorage(supabase, listingId)) {
+      await finalizeListingFromGlb(supabase, listingId, { processingStartedAt: startedAt })
+      return
+    }
+
+    if (jobType === 'upload') {
+      throw new Error('3D model file missing. Upload a GLB and try again.')
+    }
+
     const { data: listing } = await supabase
       .from('listings')
       .select('width_cm, depth_cm, height_cm, category')
@@ -48,108 +64,44 @@ export async function processListingJob(listingId: string): Promise<void> {
       .select('*')
       .eq('listing_id', listingId)
 
-    const glbPath = `${listingId}/model.glb`
-    const { data: existingGlb, error: existingGlbError } = await supabase.storage
-      .from(BUCKET)
-      .download(glbPath)
-
-    let glbUrl: string
-
-    if (!existingGlbError && existingGlb) {
-      const { data: glbPublic } = supabase.storage.from(BUCKET).getPublicUrl(glbPath)
-      glbUrl = `${glbPublic.publicUrl}?v=${Date.now()}`
-    } else {
-      if (!photos || photos.length < 4) {
-        throw new Error('Upload a GLB scan or provide four photos for generation')
-      }
-
-      for (const photo of photos) {
-        const res = await fetch(photo.public_url)
-        if (!res.ok) {
-          throw new Error(`Failed to download ${photo.label} photo (${res.status})`)
-        }
-        const buf = Buffer.from(await res.arrayBuffer())
-        await fs.writeFile(path.join(workDir, `${photo.label}.jpg`), buf)
-      }
-
-      const widthM = ((listing?.width_cm as number | null) ?? 100) / 100
-      const depthM = ((listing?.depth_cm as number | null) ?? 60) / 100
-      const heightM = ((listing?.height_cm as number | null) ?? 80) / 100
-
-      const category = (listing?.category as string | null) ?? 'Surfaces'
-
-      const outGlb = path.join(workDir, 'model.glb')
-      const scriptPath = path.join(process.cwd(), 'scripts/blender/generate.py')
-      const blender = process.env.BLENDER_PATH ?? 'blender'
-
-      await runBlender(blender, scriptPath, workDir, outGlb, widthM, depthM, heightM, category)
-
-      const glbBody = await fs.readFile(outGlb)
-      const { error: uploadError } = await supabase.storage
-        .from(BUCKET)
-        .upload(glbPath, glbBody, { contentType: 'model/gltf-binary', upsert: true })
-
-      if (uploadError) throw uploadError
-
-      const { data: glbPublic } = supabase.storage.from(BUCKET).getPublicUrl(glbPath)
-      glbUrl = `${glbPublic.publicUrl}?v=${Date.now()}`
+    if (!photos || photos.length < 4) {
+      throw new Error('Four photos required for Blender generation')
     }
-    const front = photos?.find((p) => p.label === 'front')
-    const posterUrl = front?.public_url ?? null
 
-    const arUrl = getArUrl(listingId)
-    const qrBuffer = await generateQrBuffer(arUrl)
-    const qrPath = `${listingId}/qr.png`
-    await supabase.storage.from(BUCKET).upload(qrPath, qrBuffer, {
-      contentType: 'image/png',
-      upsert: true,
-    })
+    for (const photo of photos) {
+      const res = await fetch(photo.public_url)
+      if (!res.ok) {
+        throw new Error(`Failed to download ${photo.label} photo (${res.status})`)
+      }
+      const buf = Buffer.from(await res.arrayBuffer())
+      await fs.writeFile(path.join(workDir, `${photo.label}.jpg`), buf)
+    }
 
-    await supabase
-      .from('listings')
-      .update({
-        status: 'live',
-        glb_url: glbUrl,
-        poster_url: posterUrl,
-        qr_path: qrPath,
-      })
-      .eq('id', listingId)
+    const widthM = ((listing?.width_cm as number | null) ?? 100) / 100
+    const depthM = ((listing?.depth_cm as number | null) ?? 60) / 100
+    const heightM = ((listing?.height_cm as number | null) ?? 80) / 100
+    const category = (listing?.category as string | null) ?? 'Surfaces'
 
-    await supabase
-      .from('processing_jobs')
-      .update({
-        status: 'complete',
-        completed_at: new Date().toISOString(),
-        error_message: null,
-      })
-      .eq('listing_id', listingId)
+    const outGlb = path.join(workDir, 'model.glb')
+    const scriptPath = path.join(process.cwd(), 'scripts/blender/generate.py')
+    const blender = process.env.BLENDER_PATH ?? 'blender'
 
-    const durationMs = job.started_at
-      ? Date.now() - new Date(job.started_at as string).getTime()
-      : undefined
-    await pendoTrackServer('model_generation_completed', {
-      properties: {
-        listing_id: listingId,
-        processing_duration_ms: durationMs,
-        glb_url: glbUrl,
-      },
-    })
+    await runBlender(blender, scriptPath, workDir, outGlb, widthM, depthM, heightM, category)
+
+    const glbBody = await fs.readFile(outGlb)
+    const glbPath = listingGlbPath(listingId)
+    const { error: uploadError } = await supabase.storage
+      .from(LISTINGS_BUCKET)
+      .upload(glbPath, glbBody, { contentType: 'model/gltf-binary', upsert: true })
+
+    if (uploadError) throw uploadError
+
+    await finalizeListingFromGlb(supabase, listingId, { processingStartedAt: startedAt })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
-    await supabase
-      .from('processing_jobs')
-      .update({ status: 'failed', error_message: message })
-      .eq('listing_id', listingId)
-    await supabase.from('listings').update({ status: 'failed' }).eq('id', listingId)
-
-    await pendoTrackServer('model_generation_failed', {
-      properties: {
-        listing_id: listingId,
-        error_message: message.substring(0, 200),
-      },
-    })
+    await failListingJob(supabase, listingId, message)
   } finally {
-    await fs.rm(workDir, { recursive: true, force: true }).catch(() => {})
+    await cleanupWorkDir(listingId)
   }
 }
 

@@ -28,7 +28,8 @@ export async function POST(request: Request) {
   const depth_cm = form.get('depth_cm') ? Number(form.get('depth_cm')) : null
   const height_cm = form.get('height_cm') ? Number(form.get('height_cm')) : null
   const modelSourceRaw = String(form.get('model_source') ?? 'photos')
-  const modelSource: ModelSource = modelSourceRaw === 'upload' ? 'upload' : 'photos'
+  const modelSource: ModelSource =
+    modelSourceRaw === 'scan' ? 'scan' : modelSourceRaw === 'upload' ? 'upload' : 'photos'
 
   if (!title || !description || !category || Number.isNaN(price)) {
     return NextResponse.json({ error: 'Invalid listing fields' }, { status: 400 })
@@ -47,6 +48,13 @@ export async function POST(request: Request) {
     if (missing.length > 0) {
       return NextResponse.json(
         { error: `Exactly 4 photos required. Missing: ${missing.join(', ')}` },
+        { status: 400 }
+      )
+    }
+  } else if (modelSource === 'scan') {
+    if (!photoFiles.front) {
+      return NextResponse.json(
+        { error: 'Add a front photo for your catalogue listing.' },
         { status: 400 }
       )
     }
@@ -116,6 +124,7 @@ export async function POST(request: Request) {
   await service.from('processing_jobs').insert({
     listing_id: listingId,
     status: 'queued',
+    job_type: modelSource,
   })
 
   const totalFileSize = await PHOTO_LABELS.reduce(async (accP, label) => {
@@ -140,5 +149,6 @@ export async function POST(request: Request) {
   return NextResponse.json({
     listingId,
     pendingModelUpload: modelSource === 'upload',
+    pendingScanUpload: modelSource === 'scan',
   })
 }

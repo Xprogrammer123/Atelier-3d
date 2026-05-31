@@ -4,13 +4,16 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { ScanCapture } from '@/components/listing/ScanCapture'
 import {
   CATEGORIES,
   MAX_GLB_BYTES,
+  MAX_SCAN_VIDEO_BYTES,
   PHOTO_LABELS,
   type ModelSource,
   type PhotoLabel,
 } from '@/lib/types'
+import { listingScanVideoPath } from '@/lib/storage-paths'
 import { pendoTrack } from '@/lib/pendo-client'
 import { btnAccent, btnSecondary, catalogEyebrow, formField, formInput, formLabel } from '@/lib/ui'
 import { cn } from '@/lib/cn'
@@ -31,9 +34,10 @@ function formatBytes(bytes: number): string {
 
 export function CreateListingForm() {
   const router = useRouter()
-  const [modelSource, setModelSource] = useState<ModelSource>('upload')
+  const [modelSource, setModelSource] = useState<ModelSource>('scan')
   const [photos, setPhotos] = useState<PhotoFiles>({})
   const [glbFile, setGlbFile] = useState<File | null>(null)
+  const [scanBlob, setScanBlob] = useState<Blob | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [uploadPhase, setUploadPhase] = useState<string | null>(null)
@@ -41,6 +45,7 @@ export function CreateListingForm() {
   const photoCount = PHOTO_LABELS.filter((l) => photos[l]).length
   const photosComplete = photoCount === 4
   const uploadReady = Boolean(glbFile && photos.front)
+  const scanReady = Boolean(scanBlob && photos.front)
 
   function setPhoto(label: PhotoLabel, file: File | undefined) {
     setPhotos((prev) => {
@@ -49,6 +54,16 @@ export function CreateListingForm() {
       else delete next[label]
       return next
     })
+  }
+
+  async function uploadScanVideo(listingId: string, blob: Blob) {
+    const supabase = createClient()
+    const path = listingScanVideoPath(listingId)
+    const { error: uploadError } = await supabase.storage.from('listings').upload(path, blob, {
+      contentType: blob.type || 'video/webm',
+      upsert: true,
+    })
+    if (uploadError) throw new Error(uploadError.message)
   }
 
   async function uploadGlb(listingId: string, file: File) {
@@ -86,6 +101,21 @@ export function CreateListingForm() {
       }
     }
 
+    if (modelSource === 'scan') {
+      if (!scanBlob) {
+        setError('Record a scan walk-around before publishing.')
+        return
+      }
+      if (!photos.front) {
+        setError('Add a front photo for your catalogue listing.')
+        return
+      }
+      if (scanBlob.size > MAX_SCAN_VIDEO_BYTES) {
+        setError(`Scan video must be under ${formatBytes(MAX_SCAN_VIDEO_BYTES)}. Try a shorter recording.`)
+        return
+      }
+    }
+
     const form = e.currentTarget
     const fd = new FormData(form)
     fd.set('model_source', modelSource)
@@ -101,6 +131,7 @@ export function CreateListingForm() {
       const body = (await res.json().catch(() => ({}))) as {
         listingId?: string
         pendingModelUpload?: boolean
+        pendingScanUpload?: boolean
         error?: string
       }
 
@@ -109,7 +140,20 @@ export function CreateListingForm() {
         return
       }
 
-      if (body.pendingModelUpload && glbFile) {
+      if (body.pendingScanUpload && scanBlob) {
+        setUploadPhase('Uploading scan video…')
+        await uploadScanVideo(body.listingId, scanBlob)
+
+        setUploadPhase('Starting 3D reconstruction…')
+        const finalize = await fetch(`/api/listings/${body.listingId}/scan-uploaded`, {
+          method: 'POST',
+        })
+        const finalizeBody = (await finalize.json().catch(() => ({}))) as { error?: string }
+        if (!finalize.ok) {
+          setError(finalizeBody.error ?? 'Failed to start mesh processing')
+          return
+        }
+      } else if (body.pendingModelUpload && glbFile) {
         setUploadPhase('Uploading 3D scan…')
         await uploadGlb(body.listingId, glbFile)
 
@@ -144,7 +188,7 @@ export function CreateListingForm() {
   }
 
   const canSubmit =
-    modelSource === 'photos' ? photosComplete : uploadReady
+    modelSource === 'photos' ? photosComplete : modelSource === 'scan' ? scanReady : uploadReady
 
   return (
     <form onSubmit={(e) => void handleSubmit(e)}>
@@ -217,22 +261,30 @@ export function CreateListingForm() {
 
           <section className="p-7 bg-surface-paper border border-line rounded-lg shadow-soft">
             <h2 className="m-0 mb-4 font-display text-2xl font-semibold text-ink-strong">3D model source</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+              <ModelSourceOption
+                active={modelSource === 'scan'}
+                title="Scan in Atelier"
+                description="Walk around the piece — we build 3D from your video"
+                onClick={() => setModelSource('scan')}
+              />
               <ModelSourceOption
                 active={modelSource === 'upload'}
-                title="Upload scan or GLB"
-                description="LiDAR scan (Polycam, Scaniverse) or manufacturer file"
+                title="Upload GLB"
+                description="Polycam, Scaniverse, or manufacturer file"
                 onClick={() => setModelSource('upload')}
               />
               <ModelSourceOption
                 active={modelSource === 'photos'}
-                title="Generate from photos"
-                description="Four angles — experimental placeholder pipeline"
+                title="Four photos"
+                description="Experimental Blender placeholder"
                 onClick={() => setModelSource('photos')}
               />
             </div>
 
-            {modelSource === 'upload' ? (
+            {modelSource === 'scan' ? (
+              <ScanCapture onRecordingReady={setScanBlob} disabled={loading} />
+            ) : modelSource === 'upload' ? (
               <GlbUploadSection file={glbFile} onChange={setGlbFile} />
             ) : (
               <p className="m-0 mb-5 text-[0.9rem] text-ink-muted max-w-lg">
@@ -245,12 +297,12 @@ export function CreateListingForm() {
             <div className="flex justify-between items-start gap-4 mb-5">
               <div>
                 <h2 className="m-0 mb-[0.35rem] font-display text-2xl font-semibold text-ink-strong">
-                  {modelSource === 'upload' ? 'Catalogue photos' : 'Four-angle photos'}
+                  {modelSource === 'photos' ? 'Four-angle photos' : 'Catalogue photos'}
                 </h2>
                 <p className="m-0 text-[0.9rem] text-ink-muted max-w-lg">
-                  {modelSource === 'upload'
-                    ? 'Front photo required for the shop page. Add other angles if you like.'
-                    : 'All four angles are required for generation.'}
+                  {modelSource === 'photos'
+                    ? 'All four angles are required for generation.'
+                    : 'Front photo required for the shop page. Add other angles if you like.'}
                 </p>
               </div>
               {modelSource === 'photos' && (
@@ -288,9 +340,11 @@ export function CreateListingForm() {
             <button type="submit" className={cn(btnAccent, 'min-w-56')} disabled={loading || !canSubmit}>
               {loading
                 ? uploadPhase ?? 'Working…'
-                : modelSource === 'upload'
-                  ? 'Publish with 3D scan'
-                  : 'Publish & generate 3D model'}
+                : modelSource === 'scan'
+                  ? 'Publish & build 3D'
+                  : modelSource === 'upload'
+                    ? 'Publish with 3D scan'
+                    : 'Publish & generate 3D model'}
             </button>
             <Link href="/dashboard" className={btnSecondary}>
               Cancel
@@ -302,7 +356,13 @@ export function CreateListingForm() {
           <div className="p-5 bg-surface-paper border border-line rounded-md">
             <p className={catalogEyebrow}>What happens next</p>
             <ol className="m-0 pl-[1.15rem] text-[0.88rem] leading-[1.7] text-ink-soft">
-              {modelSource === 'upload' ? (
+              {modelSource === 'scan' ? (
+                <>
+                  <li>Your scan video uploads to secure storage</li>
+                  <li>DG-Mesh reconstructs a 3D mesh on our GPU worker</li>
+                  <li>Listing goes live with AR + QR when ready</li>
+                </>
+              ) : modelSource === 'upload' ? (
                 <>
                   <li>Your GLB uploads directly to secure storage</li>
                   <li>We attach AR + QR to your real 3D scan</li>
@@ -317,7 +377,15 @@ export function CreateListingForm() {
               )}
             </ol>
           </div>
-          {modelSource === 'upload' ? (
+          {modelSource === 'scan' ? (
+            <div className="p-5 bg-[color-mix(in_oklab,var(--color-accent-peach)_30%,var(--color-surface-paper))] border border-line rounded-md">
+              <strong className="block mb-[0.35rem] text-[0.85rem]">GPU worker required</strong>
+              <p className="m-0 text-[0.88rem] leading-relaxed text-ink-soft">
+                Run <code className="text-[0.82rem]">npm run mesh-worker</code> on a machine with ffmpeg and DG-Mesh
+                configured. Reconstruction can take hours until preprocessing is fully automated.
+              </p>
+            </div>
+          ) : modelSource === 'upload' ? (
             <div className="p-5 bg-[color-mix(in_oklab,var(--color-accent-peach)_30%,var(--color-surface-paper))] border border-line rounded-md">
               <strong className="block mb-[0.35rem] text-[0.85rem]">Scan on iPhone</strong>
               <p className="m-0 text-[0.88rem] leading-relaxed text-ink-soft">
@@ -336,9 +404,15 @@ export function CreateListingForm() {
           )}
           <div className="flex flex-col gap-2 text-[0.72rem] font-semibold tracking-widest uppercase text-ink-muted">
             <span className={canSubmit ? 'text-accent-clay' : undefined}>
-              {modelSource === 'upload' ? 'GLB + front photo' : 'Photos'}
+              {modelSource === 'scan'
+                ? 'Scan + front photo'
+                : modelSource === 'upload'
+                  ? 'GLB + front photo'
+                  : 'Photos'}
             </span>
-            <span>{modelSource === 'upload' ? 'AR setup' : '3D generation'}</span>
+            <span>
+              {modelSource === 'scan' ? 'Mesh reconstruction' : modelSource === 'upload' ? 'AR setup' : '3D generation'}
+            </span>
             <span>Live listing</span>
           </div>
         </aside>

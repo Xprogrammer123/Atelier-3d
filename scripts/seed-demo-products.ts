@@ -160,6 +160,7 @@ async function seedProduct(
   await supabase.from('processing_jobs').insert({
     listing_id: listingId,
     status: 'complete',
+    job_type: 'upload',
     completed_at: new Date().toISOString(),
   })
 

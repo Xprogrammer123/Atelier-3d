@@ -15,9 +15,13 @@ export type PhotoLabel = 'front' | 'back' | 'left' | 'right'
 
 export const PHOTO_LABELS: PhotoLabel[] = ['front', 'back', 'left', 'right']
 
-export type ModelSource = 'photos' | 'upload'
+export type ModelSource = 'photos' | 'upload' | 'scan'
+
+export type JobType = ModelSource
 
 export const MAX_GLB_BYTES = 50 * 1024 * 1024
+export const MAX_SCAN_VIDEO_BYTES = 100 * 1024 * 1024
+export const MAX_SCAN_SECONDS = 60
 
 export type ListingStatus = 'processing' | 'live' | 'sold' | 'failed' | 'draft'
 export type JobStatus = 'queued' | 'generating' | 'complete' | 'failed'
@@ -63,6 +67,7 @@ export type ListingPhoto = {
 export type ProcessingJob = {
   id: string
   listing_id: string
+  job_type: JobType
   status: JobStatus
   error_message: string | null
   started_at: string | null

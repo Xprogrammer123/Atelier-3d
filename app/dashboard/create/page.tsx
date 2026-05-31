@@ -28,7 +28,7 @@ export default async function CreateListingPage() {
           <p className={catalogEyebrow}>Seller studio</p>
           <h1 className={pageTitle}>Create a listing</h1>
           <p className={pageLede}>
-            Upload a LiDAR scan or manufacturer GLB for real 3D + AR, or generate from four photos.
+            Scan in Atelier, upload a GLB, or use four photos — your listing gets 3D + AR.
           </p>
         </div>
       </header>
