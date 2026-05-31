@@ -1,3 +1,5 @@
+import { SCAN_VIDEO_BITRATE } from '@/lib/types'
+
 /** Best MediaRecorder mime type for this browser (mp4 on Safari, webm elsewhere). */
 export function getScanRecorderMimeType(): string {
   if (typeof MediaRecorder === 'undefined') return ''
@@ -18,6 +20,14 @@ export function getScanRecorderMimeType(): string {
   return ''
 }
 
+export function getScanRecorderOptions(mimeType: string): MediaRecorderOptions {
+  const options: MediaRecorderOptions = {
+    videoBitsPerSecond: SCAN_VIDEO_BITRATE,
+  }
+  if (mimeType) options.mimeType = mimeType
+  return options
+}
+
 export function scanVideoFileExtension(mimeType: string): 'webm' | 'mp4' {
   return mimeType.includes('mp4') ? 'mp4' : 'webm'
 }
@@ -27,19 +37,18 @@ export function isLikelyMobileDevice(): boolean {
   return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
 }
 
-/** Prefer rear camera on phones; use front webcam directly on desktop (faster startup). */
+/** 480p is enough for mesh frame extraction and keeps uploads fast. */
 export function getScanVideoConstraints(): MediaStreamConstraints {
+  const video = {
+    width: { ideal: 640, max: 854 },
+    height: { ideal: 480, max: 480 },
+    frameRate: { ideal: 24, max: 30 },
+  }
+
   return {
     video: isLikelyMobileDevice()
-      ? {
-          facingMode: { ideal: 'environment' },
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        }
-      : {
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
+      ? { ...video, facingMode: { ideal: 'environment' } }
+      : video,
     audio: false,
   }
 }

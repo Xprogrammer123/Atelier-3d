@@ -3,11 +3,9 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { ScanCapture } from '@/components/listing/ScanCapture'
 import { CATEGORIES, MAX_SCAN_SECONDS, MAX_SCAN_VIDEO_BYTES, MIN_SCAN_SECONDS } from '@/lib/types'
-import { listingScanVideoPath } from '@/lib/storage-paths'
-import { scanVideoFileExtension } from '@/lib/scan-recording'
+import { uploadScanVideo } from '@/lib/upload-scan-video'
 import { pendoTrack } from '@/lib/pendo-client'
 import { ProcessingStepLoader } from '@/components/listing/ProcessingStepLoader'
 import { btnAccent, btnSecondary, catalogEyebrow, formField, formInput, formLabel } from '@/lib/ui'
@@ -37,19 +35,9 @@ export function CreateListingForm() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [uploadPhase, setUploadPhase] = useState<string | null>(null)
+  const [uploadPercent, setUploadPercent] = useState(0)
 
   const canSubmit = Boolean(scanBlob && frontPhoto)
-
-  async function uploadScanVideo(listingId: string, blob: Blob) {
-    const supabase = createClient()
-    const ext = scanVideoFileExtension(blob.type || 'video/webm')
-    const path = listingScanVideoPath(listingId, ext)
-    const { error: uploadError } = await supabase.storage.from('listings').upload(path, blob, {
-      contentType: blob.type || (ext === 'mp4' ? 'video/mp4' : 'video/webm'),
-      upsert: true,
-    })
-    if (uploadError) throw new Error(uploadError.message)
-  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -73,6 +61,7 @@ export function CreateListingForm() {
     fd.append('photo_front', frontPhoto)
 
     setLoading(true)
+    setUploadPercent(0)
     try {
       setUploadPhase('Creating listing…')
       const res = await fetch('/api/listings', { method: 'POST', body: fd })
@@ -88,8 +77,8 @@ export function CreateListingForm() {
       }
 
       if (body.pendingScanUpload && scanBlob) {
-        setUploadPhase('Uploading scan video…')
-        await uploadScanVideo(body.listingId, scanBlob)
+        setUploadPhase(`Uploading scan video (${formatBytes(scanBlob.size)})…`)
+        await uploadScanVideo(body.listingId, scanBlob, setUploadPercent)
 
         setUploadPhase('Starting 3D reconstruction…')
         const finalize = await fetch(`/api/listings/${body.listingId}/scan-uploaded`, {
@@ -118,6 +107,7 @@ export function CreateListingForm() {
     } finally {
       setLoading(false)
       setUploadPhase(null)
+      setUploadPercent(0)
     }
   }
 
@@ -135,10 +125,22 @@ export function CreateListingForm() {
               steps={[...PUBLISH_STEPS]}
               activeIndex={publishStepIndex(uploadPhase)}
               title={uploadPhase ?? 'Publishing…'}
-              message="Hang tight — your scan and catalogue photo are being saved."
+              message={
+                uploadPhase?.startsWith('Uploading')
+                  ? `Uploading ${uploadPercent}% — smaller 480p scans upload much faster than full HD video.`
+                  : 'Hang tight — your scan and catalogue photo are being saved.'
+              }
               showSpinner
               compact
             />
+            {uploadPhase?.startsWith('Uploading') && (
+              <div className="mt-4 h-2 rounded-full bg-line overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-accent-clay transition-[width] duration-300 ease-out"
+                  style={{ width: `${Math.max(uploadPercent, 4)}%` }}
+                />
+              </div>
+            )}
           </div>
         </div>
       )}

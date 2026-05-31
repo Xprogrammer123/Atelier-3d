@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { getScanRecorderMimeType, getScanVideoConstraints, isLikelyMobileDevice } from '@/lib/scan-recording'
+import { getScanRecorderMimeType, getScanRecorderOptions, getScanVideoConstraints, isLikelyMobileDevice } from '@/lib/scan-recording'
 import { MAX_SCAN_SECONDS, MIN_SCAN_SECONDS } from '@/lib/types'
 import { cn } from '@/lib/cn'
 
@@ -184,7 +184,7 @@ export function ScanCapture({ onRecordingReady, disabled }: Props) {
     const mimeType = getScanRecorderMimeType()
     mimeTypeRef.current = mimeType
 
-    const recorder = new MediaRecorder(streamRef.current, mimeType ? { mimeType } : undefined)
+    const recorder = new MediaRecorder(streamRef.current, getScanRecorderOptions(mimeType))
     recorderRef.current = recorder
 
     recorder.ondataavailable = (e) => {
@@ -319,6 +319,12 @@ export function ScanCapture({ onRecordingReady, disabled }: Props) {
             Re-scan
           </button>
         )}
+        {hasRecording && (
+          <p className="m-0 text-[0.85rem] text-accent-sage">
+            Scan ready — re-record if this file looks large; 480p keeps uploads fast.
+          </p>
+        )}
+
         <span className="text-[0.85rem] text-ink-soft">
           {hasRecording
             ? 'Review your scan above, then publish when ready'
