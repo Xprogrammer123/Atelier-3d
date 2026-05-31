@@ -9,7 +9,7 @@ import {
   finalizeListingFromGlb,
   glbExistsInStorage,
 } from '@/lib/finalize-listing'
-import { LISTINGS_BUCKET, listingScanVideoPath } from '@/lib/storage-paths'
+import { downloadListingScanVideo } from '@/lib/scan-storage'
 
 function getServiceClient() {
   loadEnv()
@@ -42,17 +42,14 @@ export async function processScanMeshJob(listingId: string): Promise<void> {
   await fs.mkdir(workDir, { recursive: true })
 
   try {
-    const videoPath = listingScanVideoPath(listingId)
-    const { data: video, error: videoError } = await supabase.storage
-      .from(LISTINGS_BUCKET)
-      .download(videoPath)
-
-    if (videoError || !video) {
+    const downloaded = await downloadListingScanVideo(supabase, listingId)
+    if (!downloaded) {
       throw new Error('Scan video not found. Re-record and upload from the listing page.')
     }
 
-    const localVideo = path.join(workDir, 'scan.webm')
-    await fs.writeFile(localVideo, Buffer.from(await video.arrayBuffer()))
+    const ext = downloaded.storagePath.endsWith('.mp4') ? 'mp4' : 'webm'
+    const localVideo = path.join(workDir, `scan.${ext}`)
+    await fs.writeFile(localVideo, Buffer.from(await downloaded.blob.arrayBuffer()))
 
     const scriptPath = path.join(process.cwd(), 'scripts/mesh/process_scan_job.py')
     const python = process.env.MESH_PYTHON ?? process.env.DG_MESH_PYTHON ?? 'python3'

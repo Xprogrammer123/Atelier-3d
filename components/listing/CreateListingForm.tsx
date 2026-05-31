@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { ScanCapture } from '@/components/listing/ScanCapture'
-import { CATEGORIES, MAX_SCAN_VIDEO_BYTES } from '@/lib/types'
+import { CATEGORIES, MAX_SCAN_SECONDS, MAX_SCAN_VIDEO_BYTES, MIN_SCAN_SECONDS } from '@/lib/types'
 import { listingScanVideoPath } from '@/lib/storage-paths'
+import { scanVideoFileExtension } from '@/lib/scan-recording'
 import { pendoTrack } from '@/lib/pendo-client'
 import { btnAccent, btnSecondary, catalogEyebrow, formField, formInput, formLabel } from '@/lib/ui'
 import { cn } from '@/lib/cn'
@@ -28,9 +29,10 @@ export function CreateListingForm() {
 
   async function uploadScanVideo(listingId: string, blob: Blob) {
     const supabase = createClient()
-    const path = listingScanVideoPath(listingId)
+    const ext = scanVideoFileExtension(blob.type || 'video/webm')
+    const path = listingScanVideoPath(listingId, ext)
     const { error: uploadError } = await supabase.storage.from('listings').upload(path, blob, {
-      contentType: blob.type || 'video/webm',
+      contentType: blob.type || (ext === 'mp4' ? 'video/mp4' : 'video/webm'),
       upsert: true,
     })
     if (uploadError) throw new Error(uploadError.message)
@@ -178,7 +180,8 @@ export function CreateListingForm() {
           <section className="p-7 bg-surface-paper border border-line rounded-lg shadow-soft">
             <h2 className="m-0 mb-2 font-display text-2xl font-semibold text-ink-strong">3D scan</h2>
             <p className="m-0 mb-5 text-[0.9rem] text-ink-muted max-w-lg">
-              Walk around your piece with the camera. Atelier turns the recording into a 3D model for AR.
+              Walk around your piece with the camera for at least {MIN_SCAN_SECONDS} seconds (up to{' '}
+              {MAX_SCAN_SECONDS}). Atelier turns the recording into a 3D model for AR.
             </p>
             <ScanCapture onRecordingReady={setScanBlob} disabled={loading} />
           </section>

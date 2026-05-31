@@ -158,9 +158,10 @@ def main() -> int:
     listing_id = sys.argv[1] if len(sys.argv) > 1 else env("ATELIER_LISTING_ID")
     work_dir = Path(env("ATELIER_WORK_DIR"))
     video_path = work_dir / "scan.webm"
-
     if not video_path.is_file():
-        raise RuntimeError(f"Scan video missing at {video_path}")
+        video_path = work_dir / "scan.mp4"
+    if not video_path.is_file():
+        raise RuntimeError(f"Scan video missing in {work_dir}")
 
     frames_dir = work_dir / "frames"
     dataset_dir = work_dir / "dataset"

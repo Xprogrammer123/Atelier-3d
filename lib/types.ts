@@ -18,6 +18,7 @@ export const PHOTO_LABELS: PhotoLabel[] = ['front', 'back', 'left', 'right']
 export type JobType = 'scan'
 
 export const MAX_SCAN_VIDEO_BYTES = 100 * 1024 * 1024
+export const MIN_SCAN_SECONDS = 10
 export const MAX_SCAN_SECONDS = 60
 
 export type ListingStatus = 'processing' | 'live' | 'sold' | 'failed' | 'draft'
