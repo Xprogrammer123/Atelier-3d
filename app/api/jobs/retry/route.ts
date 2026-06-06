@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/admin'
 import { queueScanMeshJob } from '@/lib/mesh-processing'
+import { ensureScanProcessingJob } from '@/lib/processing-jobs'
 
 export async function POST(request: Request) {
   const supabase = await createClient()
@@ -28,6 +29,11 @@ export async function POST(request: Request) {
   }
 
   const service = createServiceClient()
+  const { error: jobError } = await ensureScanProcessingJob(service, listingId)
+  if (jobError) {
+    return NextResponse.json({ error: jobError }, { status: 500 })
+  }
+
   await service
     .from('processing_jobs')
     .update({ status: 'queued', error_message: null, started_at: null, completed_at: null })

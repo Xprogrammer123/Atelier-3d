@@ -8,6 +8,12 @@ const nextConfig: NextConfig = {
   // Prevent Next from picking wrong workspace root (parent package-lock.json)
   outputFileTracingRoot: path.join(__dirname),
 
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '50mb',
+    },
+  },
+
   eslint: {
     ignoreDuringBuilds: true,
   },

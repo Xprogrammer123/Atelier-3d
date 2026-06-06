@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/admin'
 import { pendoTrackServer } from '@/lib/pendo-server'
 import { listingPhotoPath } from '@/lib/storage-paths'
+import { insertScanProcessingJob } from '@/lib/processing-jobs'
 
 const BUCKET = 'listings'
 
@@ -87,11 +88,10 @@ export async function POST(request: Request) {
     public_url: publicUrl.publicUrl,
   })
 
-  await service.from('processing_jobs').insert({
-    listing_id: listingId,
-    status: 'queued',
-    job_type: 'scan',
-  })
+  const { error: jobError } = await insertScanProcessingJob(service, listingId)
+  if (jobError) {
+    return NextResponse.json({ error: jobError }, { status: 500 })
+  }
 
   await pendoTrackServer('listing_photo_uploaded', {
     visitorId: user.id,

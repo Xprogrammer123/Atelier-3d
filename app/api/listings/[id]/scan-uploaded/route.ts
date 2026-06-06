@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/admin'
 import { queueScanMeshJob } from '@/lib/mesh-processing'
 import { downloadListingScanVideo } from '@/lib/scan-storage'
+import { ensureScanProcessingJob, isScanJob } from '@/lib/processing-jobs'
 
 export async function POST(
   _request: Request,
@@ -44,17 +45,12 @@ export async function POST(
     return NextResponse.json({ error: 'Scan video is too short or empty' }, { status: 400 })
   }
 
-  const { data: job } = await service
-    .from('processing_jobs')
-    .select('status, job_type')
-    .eq('listing_id', listingId)
-    .single()
-
-  if (!job) {
-    return NextResponse.json({ error: 'Processing job not found' }, { status: 404 })
+  const { job, error: jobError } = await ensureScanProcessingJob(service, listingId)
+  if (jobError || !job) {
+    return NextResponse.json({ error: jobError ?? 'Processing job not found' }, { status: 500 })
   }
 
-  if (job.job_type !== 'scan') {
+  if (!isScanJob(job)) {
     return NextResponse.json({ error: 'This listing is not a scan job' }, { status: 400 })
   }
 
