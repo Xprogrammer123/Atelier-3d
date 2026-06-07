@@ -1,6 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { originFromRequest } from '@/lib/app-url'
+import { pendoTrackServer } from '@/lib/pendo-server'
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -41,13 +42,20 @@ export async function GET(request: NextRequest) {
     }
   )
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code)
+  const { data: sessionData, error } = await supabase.auth.exchangeCodeForSession(code)
 
   if (error) {
     return NextResponse.redirect(
       `${base}/auth/login?error=${encodeURIComponent(error.message)}`
     )
   }
+
+  pendoTrackServer('seller_logged_in', {
+    visitorId: sessionData.user?.id,
+    properties: {
+      auth_method: 'google',
+    },
+  })
 
   return response
 }
