@@ -43,6 +43,11 @@
   --animate-landing-marquee: landing-marquee 35s linear infinite;
   --animate-landing-fade-up: landing-fade-up 0.8s ease backwards;
   --animate-listing-spin: listing-spin 0.9s linear infinite;
+  --animate-listing-step-pulse: listing-step-pulse 1.8s ease-in-out infinite;
+  --animate-listing-step-dot: listing-step-dot 1.2s ease-in-out infinite;
+  --animate-listing-step-pop: listing-step-pop 0.45s ease-out backwards;
+  --animate-listing-step-check: listing-step-check 0.35s ease-out 0.1s backwards;
+  --animate-listing-progress-shimmer: listing-progress-shimmer 1.6s ease-in-out infinite;
 }
 
 @layer base {
@@ -136,6 +141,62 @@
 @keyframes listing-spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes listing-step-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px color-mix(in oklab, var(--color-accent-clay) 18%, transparent);
+  }
+  50% {
+    transform: scale(1.04);
+    box-shadow: 0 0 0 10px color-mix(in oklab, var(--color-accent-clay) 10%, transparent);
+  }
+}
+
+@keyframes listing-step-dot {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 0.75;
+  }
+}
+
+@keyframes listing-step-pop {
+  from {
+    transform: scale(0.72);
+    opacity: 0.5;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes listing-step-check {
+  from {
+    stroke-dashoffset: 16;
+    opacity: 0;
+  }
+  to {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes listing-progress-shimmer {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.12);
   }
 }
 

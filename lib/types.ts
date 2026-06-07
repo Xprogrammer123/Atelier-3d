@@ -15,6 +15,14 @@ export type PhotoLabel = 'front' | 'back' | 'left' | 'right'
 
 export const PHOTO_LABELS: PhotoLabel[] = ['front', 'back', 'left', 'right']
 
+export type JobType = 'scan'
+
+export const MAX_SCAN_VIDEO_BYTES = 50 * 1024 * 1024
+export const MIN_SCAN_SECONDS = 10
+export const MAX_SCAN_SECONDS = 60
+/** Target bitrate for scan recordings (~1 MB per 10s at 800 kbps). */
+export const SCAN_VIDEO_BITRATE = 800_000
+
 export type ListingStatus = 'processing' | 'live' | 'sold' | 'failed' | 'draft'
 export type JobStatus = 'queued' | 'generating' | 'complete' | 'failed'
 
@@ -59,6 +67,7 @@ export type ListingPhoto = {
 export type ProcessingJob = {
   id: string
   listing_id: string
+  job_type: JobType
   status: JobStatus
   error_message: string | null
   started_at: string | null
@@ -93,12 +102,18 @@ export function formatDimensions(
   return parts.join(' × ')
 }
 
-export function getArUrl(listingId: string): string {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
-  return `${base.replace(/\/$/, '')}/ar/${listingId}`
+export function getArUrl(listingId: string, base?: string): string {
+  const origin = (base ?? (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000')).replace(
+    /\/$/,
+    ''
+  )
+  return `${origin}/ar/${listingId}`
 }
 
-export function getProductUrl(listingId: string): string {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
-  return `${base.replace(/\/$/, '')}/product/${listingId}`
+export function getProductUrl(listingId: string, base?: string): string {
+  const origin = (base ?? (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000')).replace(
+    /\/$/,
+    ''
+  )
+  return `${origin}/product/${listingId}`
 }

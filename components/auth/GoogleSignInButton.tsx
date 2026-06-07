@@ -1,7 +1,7 @@
 'use client'
 
+import Link from 'next/link'
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 
 type Props = {
   label?: string
@@ -13,46 +13,19 @@ export function GoogleSignInButton({
   next = '/dashboard',
 }: Props) {
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  async function handleGoogleSignIn() {
-    setLoading(true)
-    setError(null)
-
-    const supabase = createClient()
-    const base =
-      process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ?? window.location.origin
-    const redirectTo = `${base}/auth/callback?next=${encodeURIComponent(next)}`
-
-    const { error: authError } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo,
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-        },
-      },
-    })
-
-    setLoading(false)
-    if (authError) {
-      setError(authError.message)
-    }
-  }
+  const href = `/auth/google?next=${encodeURIComponent(next)}`
 
   return (
     <div className="grid gap-2">
-      <button
-        type="button"
-        className="inline-flex items-center justify-center gap-[0.65rem] w-full px-4 py-3 border border-line rounded-sm bg-white text-ink-strong font-semibold text-[0.85rem] transition-[background,border-color] hover:bg-surface-strong hover:border-line-strong disabled:opacity-60 disabled:cursor-not-allowed"
-        onClick={() => void handleGoogleSignIn()}
-        disabled={loading}
+      <Link
+        href={href}
+        onClick={() => setLoading(true)}
+        className="inline-flex items-center justify-center gap-[0.65rem] w-full px-4 py-3 border border-line rounded-sm bg-white text-ink-strong font-semibold text-[0.85rem] transition-[background,border-color] hover:bg-surface-strong hover:border-line-strong aria-disabled:opacity-60"
+        aria-disabled={loading}
       >
         <GoogleIcon />
         {loading ? 'Redirecting…' : label}
-      </button>
-      {error && <p className="m-0 text-[#8b2e1f] text-[0.85rem]">{error}</p>}
+      </Link>
     </div>
   )
 }

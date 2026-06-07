@@ -28,7 +28,7 @@ export default async function CreateListingPage() {
           <p className={catalogEyebrow}>Seller studio</p>
           <h1 className={pageTitle}>Create a listing</h1>
           <p className={pageLede}>
-            Four photos become a 3D model, AR preview, and shareable QR — all from one upload.
+            Add your piece details, pick a 3D model, and publish — buyers get AR in seconds.
           </p>
         </div>
       </header>

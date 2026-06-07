@@ -3,243 +3,265 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
-import { CATEGORIES, PHOTO_LABELS, type PhotoLabel } from '@/lib/types'
+import type { DemoModelId } from '@/lib/demo-models'
+import { DemoModelPicker } from '@/components/listing/DemoModelPicker'
 import { pendoTrack } from '@/lib/pendo-client'
+import { ProcessingStepLoader } from '@/components/listing/ProcessingStepLoader'
+import { CATEGORIES } from '@/lib/types'
 import { btnAccent, btnSecondary, catalogEyebrow, formField, formInput, formLabel } from '@/lib/ui'
 import { cn } from '@/lib/cn'
 
-type PhotoFiles = Partial<Record<PhotoLabel, File>>
+/*
+ * Scan workflow (disabled — keep for post-hackathon DG-Mesh path)
+ *
+ * import { ScanCapture } from '@/components/listing/ScanCapture'
+ * import { uploadScanVideo } from '@/lib/upload-scan-video'
+ * import { MAX_SCAN_SECONDS, MAX_SCAN_VIDEO_BYTES, MIN_SCAN_SECONDS } from '@/lib/types'
+ *
+ * <ScanCapture onRecordingReady={setScanBlob} disabled={loading} />
+ * → uploadScanVideo → POST /api/listings/[id]/scan-uploaded → npm run worker
+ */
 
-const PHOTO_HINTS: Record<PhotoLabel, string> = {
-  front: 'Full front view, centered',
-  back: 'Full back view, centered',
-  left: 'Left side profile',
-  right: 'Right side profile',
+const PUBLISH_STEPS = [
+  { key: 'create', label: 'Create listing' },
+  { key: 'model', label: 'Attach 3D' },
+  { key: 'live', label: 'Go live' },
+] as const
+
+function publishStepIndex(phase: string | null): number {
+  if (phase?.startsWith('Attaching')) return 1
+  if (phase?.startsWith('Publishing')) return 2
+  return 0
 }
 
 export function CreateListingForm() {
   const router = useRouter()
-  const [photos, setPhotos] = useState<PhotoFiles>({})
+  const [frontPhoto, setFrontPhoto] = useState<File | undefined>()
+  const [demoModel, setDemoModel] = useState<DemoModelId | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [uploadPhase, setUploadPhase] = useState<string | null>(null)
 
-  const photoCount = PHOTO_LABELS.filter((l) => photos[l]).length
-  const photosComplete = photoCount === 4
-
-  function setPhoto(label: PhotoLabel, file: File | undefined) {
-    setPhotos((prev) => {
-      const next = { ...prev }
-      if (file) next[label] = file
-      else delete next[label]
-      return next
-    })
-  }
+  const canSubmit = Boolean(demoModel && frontPhoto)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
 
-    if (!photosComplete) {
-      const missing = PHOTO_LABELS.filter((l) => !photos[l])
-      setError(`Upload all four photos. Still needed: ${missing.join(', ')}`)
+    if (!demoModel) {
+      setError('Choose a 3D model for your listing.')
+      return
+    }
+    if (!frontPhoto) {
+      setError('Add a front photo for your catalogue listing.')
       return
     }
 
     const form = e.currentTarget
     const fd = new FormData(form)
-    PHOTO_LABELS.forEach((label) => {
-      const file = photos[label]
-      if (file) fd.append(`photo_${label}`, file)
-    })
+    fd.append('photo_front', frontPhoto)
+    fd.append('demo_model', demoModel)
 
     setLoading(true)
     try {
+      setUploadPhase('Creating listing…')
       const res = await fetch('/api/listings', { method: 'POST', body: fd })
       const body = (await res.json().catch(() => ({}))) as {
         listingId?: string
+        live?: boolean
         error?: string
       }
 
-      if (!res.ok) {
+      if (!res.ok || !body.listingId) {
         setError(body.error ?? 'Failed to create listing')
         return
       }
 
-      if (body.listingId) {
-        pendoTrack('listing_created', {
-          listing_id: body.listingId,
-          category: String(fd.get('category') ?? ''),
-          price_cents: Math.round(Number(fd.get('price')) * 100),
-          location: String(fd.get('location') ?? ''),
-          has_dimensions: Boolean(fd.get('width_cm') || fd.get('depth_cm') || fd.get('height_cm')),
-          photo_count: photoCount,
-        })
+      setUploadPhase('Attaching 3D model…')
+      await new Promise((r) => setTimeout(r, 400))
+      setUploadPhase('Publishing listing…')
+
+      pendoTrack('listing_created', {
+        listing_id: body.listingId,
+        category: String(fd.get('category') ?? ''),
+        price_cents: Math.round(Number(fd.get('price')) * 100),
+        location: String(fd.get('location') ?? ''),
+        has_dimensions: Boolean(fd.get('width_cm') || fd.get('depth_cm') || fd.get('height_cm')),
+        photo_count: 1,
+        model_source: 'demo',
+        demo_model: demoModel,
+      })
+
+      if (body.live) {
+        router.push(`/product/${body.listingId}`)
+      } else {
         router.push(`/dashboard/listing/${body.listingId}/status`)
-        router.refresh()
       }
-    } catch {
-      setError('Network error. Check your connection and try again.')
+      router.refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Network error. Check your connection and try again.')
     } finally {
       setLoading(false)
+      setUploadPhase(null)
     }
   }
 
   return (
-    <form onSubmit={(e) => void handleSubmit(e)}>
-      <div className="grid gap-8 lg:grid-cols-[1fr_300px] lg:items-start">
-        <div className="grid gap-8">
-          <section className="p-7 bg-surface-paper border border-line rounded-lg shadow-soft">
-            <h2 className="m-0 mb-5 font-display text-2xl font-semibold text-ink-strong">Piece details</h2>
-            <div className="grid gap-4">
-              <div className={formField}>
-                <label htmlFor="title" className={formLabel}>
-                  Title
-                </label>
-                <input
-                  id="title"
-                  name="title"
-                  required
-                  placeholder="e.g. Mid-century walnut sideboard"
-                  className={formInput}
-                />
-              </div>
-              <div className={formField}>
-                <label htmlFor="description" className={formLabel}>
-                  Description
-                </label>
-                <textarea
-                  id="description"
-                  name="description"
-                  rows={5}
-                  required
-                  placeholder="Materials, condition, style notes buyers should know…"
-                  className={formInput}
-                />
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className={formField}>
-                  <label htmlFor="price" className={formLabel}>
-                    Price (USD)
-                  </label>
-                  <input id="price" name="price" type="number" min="0" step="1" required className={formInput} />
-                </div>
-                <div className={formField}>
-                  <label htmlFor="category" className={formLabel}>
-                    Category
-                  </label>
-                  <select id="category" name="category" required defaultValue="Surfaces" className={formInput}>
-                    {CATEGORIES.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div className={formField}>
-                <label className={formLabel}>Dimensions (cm)</label>
-                <div className="grid grid-cols-3 gap-2">
-                  <input name="width_cm" type="number" placeholder="W" min="0" step="0.1" className={formInput} />
-                  <input name="depth_cm" type="number" placeholder="D" min="0" step="0.1" className={formInput} />
-                  <input name="height_cm" type="number" placeholder="H" min="0" step="0.1" className={formInput} />
-                </div>
-              </div>
-              <div className={formField}>
-                <label htmlFor="location" className={formLabel}>
-                  Location
-                </label>
-                <input id="location" name="location" placeholder="City, region" className={formInput} />
-              </div>
-            </div>
-          </section>
-
-          <section className="p-7 bg-surface-paper border border-line rounded-lg shadow-soft">
-            <div className="flex justify-between items-start gap-4 mb-5">
-              <div>
-                <h2 className="m-0 mb-[0.35rem] font-display text-2xl font-semibold text-ink-strong">
-                  Four-angle photos
-                </h2>
-                <p className="m-0 text-[0.9rem] text-ink-muted max-w-lg">
-                  Required for 3D generation. Shoot on a plain background with even lighting.
-                </p>
-              </div>
-              <span
-                className={cn(
-                  'shrink-0 px-3 py-[0.35rem] rounded-sm text-xs font-bold tracking-widest bg-line text-ink-muted',
-                  photosComplete && 'bg-[color-mix(in_oklab,var(--color-accent-sage)_35%,white)] text-ink-strong'
-                )}
-              >
-                {photoCount} / 4
-              </span>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {PHOTO_LABELS.map((label) => (
-                <PhotoSlot
-                  key={label}
-                  label={label}
-                  hint={PHOTO_HINTS[label]}
-                  file={photos[label]}
-                  onChange={(f) => setPhoto(label, f)}
-                />
-              ))}
-            </div>
-          </section>
-
-          {error && (
-            <div className="p-4 px-5 bg-[#fde8e4] border border-[#e8b4a8] rounded-sm text-[#8b2e1f] text-[0.9rem]" role="alert">
-              {error}
-            </div>
-          )}
-
-          <div className="flex flex-wrap gap-3 items-center">
-            <button
-              type="submit"
-              className={cn(btnAccent, 'min-w-56')}
-              disabled={loading || !photosComplete}
-            >
-              {loading ? 'Uploading & queuing 3D…' : 'Publish & generate 3D model'}
-            </button>
-            <Link href="/dashboard" className={btnSecondary}>
-              Cancel
-            </Link>
+    <>
+      {loading && (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center p-6 bg-[color-mix(in_oklab,var(--color-ink-strong)_35%,transparent)] backdrop-blur-[2px]"
+          role="status"
+          aria-live="polite"
+          aria-label="Publishing listing"
+        >
+          <div className="w-full max-w-lg p-6 sm:p-8 bg-surface-paper border border-line rounded-lg shadow-lift animate-listing-step-pop">
+            <ProcessingStepLoader
+              steps={[...PUBLISH_STEPS]}
+              activeIndex={publishStepIndex(uploadPhase)}
+              title={uploadPhase ?? 'Publishing…'}
+              message="Your listing goes live with 3D preview and AR in seconds."
+              showSpinner
+              compact
+            />
           </div>
         </div>
+      )}
 
-        <aside className="grid gap-4 sticky top-6">
-          <div className="p-5 bg-surface-paper border border-line rounded-md">
-            <p className={catalogEyebrow}>What happens next</p>
-            <ol className="m-0 pl-[1.15rem] text-[0.88rem] leading-[1.7] text-ink-soft">
-              <li>Photos upload to secure storage</li>
-              <li>Blender builds a GLB from your four angles</li>
-              <li>Listing goes live with 3D + AR + QR code</li>
-            </ol>
+      <form onSubmit={(e) => void handleSubmit(e)}>
+        <div className="grid gap-8 lg:grid-cols-[1fr_300px] lg:items-start">
+          <div className="grid gap-8">
+            <section className="p-7 bg-surface-paper border border-line rounded-lg shadow-soft">
+              <h2 className="m-0 mb-5 font-display text-2xl font-semibold text-ink-strong">Piece details</h2>
+              <div className="grid gap-4">
+                <div className={formField}>
+                  <label htmlFor="title" className={formLabel}>
+                    Title
+                  </label>
+                  <input
+                    id="title"
+                    name="title"
+                    required
+                    placeholder="e.g. Mid-century walnut sideboard"
+                    className={formInput}
+                  />
+                </div>
+                <div className={formField}>
+                  <label htmlFor="description" className={formLabel}>
+                    Description
+                  </label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    rows={5}
+                    required
+                    placeholder="Materials, condition, style notes buyers should know…"
+                    className={formInput}
+                  />
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className={formField}>
+                    <label htmlFor="price" className={formLabel}>
+                      Price (USD)
+                    </label>
+                    <input id="price" name="price" type="number" min="0" step="1" required className={formInput} />
+                  </div>
+                  <div className={formField}>
+                    <label htmlFor="category" className={formLabel}>
+                      Category
+                    </label>
+                    <select id="category" name="category" required defaultValue="Surfaces" className={formInput}>
+                      {CATEGORIES.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className={formField}>
+                  <label className={formLabel}>Dimensions (cm)</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <input name="width_cm" type="number" placeholder="W" min="0" step="0.1" className={formInput} />
+                    <input name="depth_cm" type="number" placeholder="D" min="0" step="0.1" className={formInput} />
+                    <input name="height_cm" type="number" placeholder="H" min="0" step="0.1" className={formInput} />
+                  </div>
+                </div>
+                <div className={formField}>
+                  <label htmlFor="location" className={formLabel}>
+                    Location
+                  </label>
+                  <input id="location" name="location" placeholder="City, region" className={formInput} />
+                </div>
+              </div>
+            </section>
+
+            <section className="p-7 bg-surface-paper border border-line rounded-lg shadow-soft">
+              <h2 className="m-0 mb-2 font-display text-2xl font-semibold text-ink-strong">3D model</h2>
+              <p className="m-0 mb-5 text-[0.9rem] text-ink-muted max-w-lg">
+                Choose the piece that best matches yours — buyers get an interactive 3D preview and in-room AR.
+              </p>
+              <DemoModelPicker value={demoModel} onChange={setDemoModel} disabled={loading} />
+            </section>
+
+            <section className="p-7 bg-surface-paper border border-line rounded-lg shadow-soft">
+              <h2 className="m-0 mb-[0.35rem] font-display text-2xl font-semibold text-ink-strong">Catalogue photo</h2>
+              <p className="m-0 mb-5 text-[0.9rem] text-ink-muted max-w-lg">
+                Front photo for the shop page and listing thumbnail.
+              </p>
+              <FrontPhotoSlot file={frontPhoto} onChange={setFrontPhoto} />
+            </section>
+
+            {error && (
+              <div
+                className="p-4 px-5 bg-[#fde8e4] border border-[#e8b4a8] rounded-sm text-[#8b2e1f] text-[0.9rem]"
+                role="alert"
+              >
+                {error}
+              </div>
+            )}
+
+            <div className="flex flex-wrap gap-3 items-center">
+              <button type="submit" className={cn(btnAccent, 'min-w-56')} disabled={loading || !canSubmit}>
+                {loading ? uploadPhase ?? 'Working…' : 'Publish listing'}
+              </button>
+              <Link href="/dashboard" className={btnSecondary}>
+                Cancel
+              </Link>
+            </div>
           </div>
-          <div className="p-5 bg-[color-mix(in_oklab,var(--color-accent-peach)_30%,var(--color-surface-paper))] border border-line rounded-md">
-            <strong className="block mb-[0.35rem] text-[0.85rem]">Tip</strong>
-            <p className="m-0 text-[0.88rem] leading-relaxed text-ink-soft">
-              Keep the camera at the same height for all four shots. Avoid heavy shadows —
-              they help the model read shape more accurately.
-            </p>
-          </div>
-          <div className="flex flex-col gap-2 text-[0.72rem] font-semibold tracking-widest uppercase text-ink-muted">
-            <span className={photosComplete ? 'text-accent-clay' : undefined}>Photos</span>
-            <span>3D generation</span>
-            <span>Live listing</span>
-          </div>
-        </aside>
-      </div>
-    </form>
+
+          <aside className="grid gap-4 sticky top-6">
+            <div className="p-5 bg-surface-paper border border-line rounded-md">
+              <p className={catalogEyebrow}>What happens next</p>
+              <ol className="m-0 pl-[1.15rem] text-[0.88rem] leading-[1.7] text-ink-soft">
+                <li>Your listing is saved with photos + 3D model</li>
+                <li>QR code is generated for tags and sharing</li>
+                <li>Listing goes live — buyers can preview and try AR</li>
+              </ol>
+            </div>
+            <div className="p-5 bg-[color-mix(in_oklab,var(--color-accent-peach)_30%,var(--color-surface-paper))] border border-line rounded-md">
+              <strong className="block mb-[0.35rem] text-[0.85rem]">Instant publish</strong>
+              <p className="m-0 text-[0.88rem] leading-relaxed text-ink-soft">
+                No worker or GPU needed — perfect for demos and judging.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 text-[0.72rem] font-semibold tracking-widest uppercase text-ink-muted">
+              <span className={canSubmit ? 'text-accent-clay' : undefined}>3D model + photo</span>
+              <span className={canSubmit ? 'text-accent-clay' : undefined}>Publish</span>
+              <span>Live + AR</span>
+            </div>
+          </aside>
+        </div>
+      </form>
+    </>
   )
 }
 
-function PhotoSlot({
-  label,
-  hint,
+function FrontPhotoSlot({
   file,
   onChange,
 }: {
-  label: PhotoLabel
-  hint: string
   file?: File
   onChange: (f: File | undefined) => void
 }) {
@@ -254,7 +276,7 @@ function PhotoSlot({
   return (
     <label
       className={cn(
-        'relative aspect-[3/4] border-2 border-dashed border-line rounded-md overflow-hidden cursor-pointer transition-[border-color,box-shadow] bg-surface-strong hover:border-accent-clay-soft',
+        'relative block max-w-xs aspect-[3/4] border-2 border-dashed border-line rounded-md overflow-hidden cursor-pointer transition-[border-color] bg-surface-strong hover:border-accent-clay-soft',
         file && 'border-solid border-accent-sage'
       )}
     >
@@ -266,7 +288,7 @@ function PhotoSlot({
       />
       {preview ? (
         <>
-          <img src={preview} alt={`${label} preview`} className="w-full h-full object-cover" />
+          <img src={preview} alt="Front preview" className="w-full h-full object-cover" />
           <span
             className="absolute top-2 right-2 size-6 grid place-items-center bg-accent-sage text-white rounded-full text-xs font-bold z-[1]"
             aria-hidden
@@ -276,8 +298,8 @@ function PhotoSlot({
         </>
       ) : (
         <div className="h-full flex flex-col items-center justify-center p-3 text-center gap-[0.35rem]">
-          <span className="text-[0.68rem] font-bold tracking-[0.18em] uppercase text-accent-clay">{label}</span>
-          <span className="text-[0.72rem] text-ink-muted leading-snug">{hint}</span>
+          <span className="text-[0.68rem] font-bold tracking-[0.18em] uppercase text-accent-clay">Front *</span>
+          <span className="text-[0.72rem] text-ink-muted leading-snug">Full front view, centered</span>
           <span className="mt-2 text-[0.78rem] font-semibold text-ink-soft">+ Add photo</span>
         </div>
       )}
