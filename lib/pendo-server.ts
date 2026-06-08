@@ -1,5 +1,6 @@
 const PENDO_TRACK_URL = 'https://data.pendo.io/data/track'
 const PENDO_INTEGRATION_KEY = '17825332-b9f3-4ba5-bc23-aa3851e1a733'
+const PENDO_APP_ID = process.env.PENDO_APP_ID ?? '4fe71006-306d-4ca4-acd4-a4a7cff34280'
 const PENDO_TIMEOUT_MS = 2500
 
 export function pendoTrackServer(
@@ -10,7 +11,11 @@ export function pendoTrackServer(
     properties?: Record<string, unknown>
   } = {}
 ): void {
-  const { visitorId = 'system', accountId = 'system', properties } = options
+  const { visitorId, accountId = visitorId ?? 'anonymous', properties } = options
+
+  if (!visitorId) {
+    return
+  }
 
   void fetch(PENDO_TRACK_URL, {
     method: 'POST',
@@ -20,6 +25,7 @@ export function pendoTrackServer(
     },
     body: JSON.stringify({
       type: 'track',
+      appId: PENDO_APP_ID,
       event,
       visitorId,
       accountId,
