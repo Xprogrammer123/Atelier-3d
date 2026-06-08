@@ -32,6 +32,7 @@ export function pendoInitialize(options: unknown): void {
     return
   }
 
+
   let attempts = 0
   const timer = window.setInterval(() => {
     attempts += 1
@@ -43,6 +44,7 @@ export function pendoInitialize(options: unknown): void {
     }
     if (attempts >= 10) {
       window.clearInterval(timer)
+
     }
   }, 50)
 }

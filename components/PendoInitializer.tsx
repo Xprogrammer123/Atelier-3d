@@ -11,8 +11,11 @@ import {
 
 export function PendoInitializer() {
   useEffect(() => {
+    const anonymousId = getAnonymousVisitorId()
+    document.cookie = `pendo_visitor_id=${anonymousId};path=/;max-age=31536000;SameSite=Lax`
+
     pendoInitialize({
-      visitor: { id: getAnonymousVisitorId() },
+      visitor: { id: anonymousId },
     })
 
     const supabase = createClient()
