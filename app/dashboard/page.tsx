@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import Image from 'next/image'
 import { DbSetupBanner } from '@/components/DbSetupBanner'
+import { ProductModelViewer } from '@/components/ProductModelViewer'
 import { getSiteOrigin } from '@/lib/app-url-server'
 import { getSellerListings } from '@/lib/listings'
 import { createClient } from '@/lib/supabase/server'
@@ -51,7 +52,7 @@ export default async function DashboardPage() {
           </Link>
         </div>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {await Promise.all(
             listings.map(async (listing) => {
               const arUrl = getArUrl(listing.id, siteOrigin)
@@ -61,46 +62,58 @@ export default async function DashboardPage() {
               return (
                 <article
                   key={listing.id}
-                  className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-4 p-5 border border-line rounded-md bg-surface-paper items-center"
+                  className="flex flex-col h-full p-5 border border-line rounded-md bg-surface-paper"
                 >
-                  <div>
-                    <h2 className="m-0 mb-[0.35rem] font-display text-xl">{listing.title}</h2>
-                    <p className="m-0">{formatPrice(listing.price_cents)}</p>
+                  <div className="flex-1 grid gap-2">
+                    <h2 className="m-0 font-display text-xl leading-snug text-ink-strong">{listing.title}</h2>
+                    <p className="m-0 font-semibold text-accent-clay">{formatPrice(listing.price_cents)}</p>
                     <span
                       className={cn(
-                        'inline-block mt-2 text-[0.7rem] font-semibold tracking-widest uppercase px-[0.6rem] py-[0.3rem] rounded-xs',
+                        'inline-block w-fit text-[0.7rem] font-semibold tracking-widest uppercase px-[0.6rem] py-[0.3rem] rounded-xs',
                         statusPillStyles[listing.status] ?? 'bg-line'
                       )}
                     >
                       {listing.status}
                       {jobStatus && listing.status === 'processing' ? ` · ${jobStatus}` : ''}
                     </span>
-                    <div className="flex gap-6 mt-2 text-[0.8rem] text-ink-muted">
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-[0.8rem] text-ink-muted">
                       <span>{listing.views_count} views</span>
-                      <span>{listing.ar_sessions_count} AR sessions</span>
+                      <span>{listing.ar_sessions_count} AR</span>
                       <span>{listing.enquiries_count} enquiries</span>
                     </div>
                   </div>
-                  <div className="grid gap-2 justify-items-end">
+
+                  <div className="mt-5 pt-4 border-t border-line grid gap-3 justify-items-center">
                     {listing.status === 'processing' && (
-                      <Link href={`/dashboard/listing/${listing.id}/status`} className={btnSecondary}>
+                      <Link
+                        href={`/dashboard/listing/${listing.id}/status`}
+                        className={cn(btnSecondary, 'w-full text-center')}
+                      >
                         View status
                       </Link>
                     )}
                     {listing.status === 'live' && (
                       <>
                         {qr && (
-                          <a href={qr} download={`atelier-${listing.id}.png`}>
-                            <Image src={qr} alt="QR" width={80} height={80} unoptimized />
+                          <a
+                            href={qr}
+                            download={`atelier-${listing.id}.png`}
+                            className="rounded-sm border border-line p-2 bg-white hover:border-accent-clay-soft transition-colors"
+                            title="Download QR code"
+                          >
+                            <Image src={qr} alt="QR code for AR" width={128} height={128} unoptimized />
                           </a>
                         )}
-                        <Link href={`/product/${listing.id}`} className={btnSecondary}>
+                        <Link href={`/product/${listing.id}`} className={cn(btnSecondary, 'w-full text-center')}>
                           View listing
                         </Link>
                       </>
                     )}
                     {listing.status === 'failed' && (
-                      <Link href={`/dashboard/listing/${listing.id}/status`} className={btnSecondary}>
+                      <Link
+                        href={`/dashboard/listing/${listing.id}/status`}
+                        className={cn(btnSecondary, 'w-full text-center')}
+                      >
                         Retry
                       </Link>
                     )}
