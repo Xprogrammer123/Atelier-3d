@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useMemo, useState } from 'react'
+import { useState } from 'react'
 import type { DemoModelId } from '@/lib/demo-models'
 import { DemoModelPicker } from '@/components/listing/DemoModelPicker'
 import { pendoTrack } from '@/lib/pendo-client'
@@ -36,13 +36,12 @@ function publishStepIndex(phase: string | null): number {
 
 export function CreateListingForm() {
   const router = useRouter()
-  const [frontPhoto, setFrontPhoto] = useState<File | undefined>()
   const [demoModel, setDemoModel] = useState<DemoModelId | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [uploadPhase, setUploadPhase] = useState<string | null>(null)
 
-  const canSubmit = Boolean(demoModel && frontPhoto)
+  const canSubmit = Boolean(demoModel)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -52,14 +51,8 @@ export function CreateListingForm() {
       setError('Choose a 3D model for your listing.')
       return
     }
-    if (!frontPhoto) {
-      setError('Add a front photo for your catalogue listing.')
-      return
-    }
-
     const form = e.currentTarget
     const fd = new FormData(form)
-    fd.append('photo_front', frontPhoto)
     fd.append('demo_model', demoModel)
 
     setLoading(true)
@@ -87,7 +80,7 @@ export function CreateListingForm() {
         price_cents: Math.round(Number(fd.get('price')) * 100),
         location: String(fd.get('location') ?? ''),
         has_dimensions: Boolean(fd.get('width_cm') || fd.get('depth_cm') || fd.get('height_cm')),
-        photo_count: 1,
+        photo_count: 0,
         model_source: 'demo',
         demo_model: demoModel,
       })
@@ -204,14 +197,6 @@ export function CreateListingForm() {
               <DemoModelPicker value={demoModel} onChange={setDemoModel} disabled={loading} />
             </section>
 
-            <section className="p-7 bg-surface-paper border border-line rounded-lg shadow-soft">
-              <h2 className="m-0 mb-[0.35rem] font-display text-2xl font-semibold text-ink-strong">Catalogue photo</h2>
-              <p className="m-0 mb-5 text-[0.9rem] text-ink-muted max-w-lg">
-                Front photo for the shop page and listing thumbnail.
-              </p>
-              <FrontPhotoSlot file={frontPhoto} onChange={setFrontPhoto} />
-            </section>
-
             {error && (
               <div
                 className="p-4 px-5 bg-[#fde8e4] border border-[#e8b4a8] rounded-sm text-[#8b2e1f] text-[0.9rem]"
@@ -235,7 +220,7 @@ export function CreateListingForm() {
             <div className="p-5 bg-surface-paper border border-line rounded-md">
               <p className={catalogEyebrow}>What happens next</p>
               <ol className="m-0 pl-[1.15rem] text-[0.88rem] leading-[1.7] text-ink-soft">
-                <li>Your listing is saved with photos + 3D model</li>
+                <li>Your listing is saved with a 3D model</li>
                 <li>QR code is generated for tags and sharing</li>
                 <li>Listing goes live — buyers can preview and try AR</li>
               </ol>
@@ -247,7 +232,7 @@ export function CreateListingForm() {
               </p>
             </div>
             <div className="flex flex-col gap-2 text-[0.72rem] font-semibold tracking-widest uppercase text-ink-muted">
-              <span className={canSubmit ? 'text-accent-clay' : undefined}>3D model + photo</span>
+              <span className={canSubmit ? 'text-accent-clay' : undefined}>Pick 3D model</span>
               <span className={canSubmit ? 'text-accent-clay' : undefined}>Publish</span>
               <span>Live + AR</span>
             </div>
@@ -255,54 +240,5 @@ export function CreateListingForm() {
         </div>
       </form>
     </>
-  )
-}
-
-function FrontPhotoSlot({
-  file,
-  onChange,
-}: {
-  file?: File
-  onChange: (f: File | undefined) => void
-}) {
-  const preview = useMemo(() => (file ? URL.createObjectURL(file) : null), [file])
-
-  useEffect(() => {
-    return () => {
-      if (preview) URL.revokeObjectURL(preview)
-    }
-  }, [preview])
-
-  return (
-    <label
-      className={cn(
-        'relative block max-w-xs aspect-[3/4] border-2 border-dashed border-line rounded-md overflow-hidden cursor-pointer transition-[border-color] bg-surface-strong hover:border-accent-clay-soft',
-        file && 'border-solid border-accent-sage'
-      )}
-    >
-      <input
-        type="file"
-        accept="image/jpeg,image/png,image/webp"
-        className="absolute inset-0 opacity-0 cursor-pointer z-[2]"
-        onChange={(e) => onChange(e.target.files?.[0])}
-      />
-      {preview ? (
-        <>
-          <img src={preview} alt="Front preview" className="w-full h-full object-cover" />
-          <span
-            className="absolute top-2 right-2 size-6 grid place-items-center bg-accent-sage text-white rounded-full text-xs font-bold z-[1]"
-            aria-hidden
-          >
-            ✓
-          </span>
-        </>
-      ) : (
-        <div className="h-full flex flex-col items-center justify-center p-3 text-center gap-[0.35rem]">
-          <span className="text-[0.68rem] font-bold tracking-[0.18em] uppercase text-accent-clay">Front *</span>
-          <span className="text-[0.72rem] text-ink-muted leading-snug">Full front view, centered</span>
-          <span className="mt-2 text-[0.78rem] font-semibold text-ink-soft">+ Add photo</span>
-        </div>
-      )}
-    </label>
   )
 }

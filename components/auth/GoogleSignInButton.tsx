@@ -18,6 +18,7 @@ export function GoogleSignInButton({
   return (
     <div className="grid gap-2">
       <Link
+        id="link-google-sign-in"
         href={href}
         onClick={() => setLoading(true)}
         className="inline-flex items-center justify-center gap-[0.65rem] w-full px-4 py-3 border border-line rounded-sm bg-white text-ink-strong font-semibold text-[0.85rem] transition-[background,border-color] hover:bg-surface-strong hover:border-line-strong aria-disabled:opacity-60"

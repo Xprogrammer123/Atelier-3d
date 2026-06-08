@@ -79,7 +79,7 @@ export function LandingPage() {
               preview in the browser, then step into augmented reality in your own room.
             </p>
             <div className="flex flex-wrap gap-[0.65rem] mb-10">
-              <Link href="/catalogue" className={landingPrimaryBtn}>
+              <Link id="link-enter-collection" href="/catalogue" className={landingPrimaryBtn}>
                 Enter the collection
               </Link>
               <Link id="link-list-your-work" href="/auth/register" className={landingGhostBtn}>

@@ -1,4 +1,3 @@
-import fs from 'fs/promises'
 import { NextResponse } from 'next/server'
 import { ensureProfile } from '@/lib/ensure-profile'
 import { createClient } from '@/lib/supabase/server'
@@ -8,7 +7,7 @@ import { readDemoModelGlb } from '@/lib/demo-models-server'
 import { finalizeListingFromGlb } from '@/lib/finalize-listing'
 import { pendoTrackServer } from '@/lib/pendo-server'
 import { insertScanProcessingJob } from '@/lib/processing-jobs'
-import { LISTINGS_BUCKET, listingGlbPath, listingPhotoPath } from '@/lib/storage-paths'
+import { LISTINGS_BUCKET, listingGlbPath } from '@/lib/storage-paths'
 
 export async function POST(request: Request) {
   const supabase = await createClient()
@@ -30,11 +29,6 @@ export async function POST(request: Request) {
   const depth_cm = form.get('depth_cm') ? Number(form.get('depth_cm')) : null
   const height_cm = form.get('height_cm') ? Number(form.get('height_cm')) : null
   const demoModelId = String(form.get('demo_model') ?? '').trim()
-
-  const frontPhoto = form.get('photo_front')
-  if (!(frontPhoto instanceof File) || frontPhoto.size === 0) {
-    return NextResponse.json({ error: 'Add a front photo for your catalogue listing.' }, { status: 400 })
-  }
 
   const demoModel = getDemoModel(demoModelId)
   if (!demoModel) {
@@ -82,25 +76,6 @@ export async function POST(request: Request) {
   }
 
   const listingId = listing.id
-  const photoPath = listingPhotoPath(listingId, 'front')
-  const photoBuffer = Buffer.from(await frontPhoto.arrayBuffer())
-
-  const { error: photoUploadError } = await service.storage
-    .from(LISTINGS_BUCKET)
-    .upload(photoPath, photoBuffer, { contentType: frontPhoto.type || 'image/jpeg', upsert: true })
-
-  if (photoUploadError) {
-    return NextResponse.json({ error: photoUploadError.message }, { status: 500 })
-  }
-
-  const { data: photoPublic } = service.storage.from(LISTINGS_BUCKET).getPublicUrl(photoPath)
-
-  await service.from('listing_photos').insert({
-    listing_id: listingId,
-    label: 'front',
-    storage_path: photoPath,
-    public_url: photoPublic.publicUrl,
-  })
 
   const { error: jobError } = await insertScanProcessingJob(service, listingId)
   if (jobError) {
@@ -121,14 +96,12 @@ export async function POST(request: Request) {
 
   await finalizeListingFromGlb(service, listingId)
 
-  pendoTrackServer('listing_photo_uploaded', {
+  pendoTrackServer('listing_created', {
     visitorId: user.id,
     properties: {
       listing_id: listingId,
-      photo_labels: 'front',
       model_source: 'demo',
       demo_model: demoModel.id,
-      total_file_size_bytes: frontPhoto.size,
     },
   })
 
