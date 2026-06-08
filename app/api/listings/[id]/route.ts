@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { deleteListingForSeller } from '@/lib/delete-listing'
 import { createClient } from '@/lib/supabase/server'
 
 type Params = { params: Promise<{ id: string }> }
@@ -14,10 +15,10 @@ export async function DELETE(_request: Request, { params }: Params) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { error } = await supabase.from('listings').delete().eq('id', id).eq('seller_id', user.id)
+  const result = await deleteListingForSeller(id, user.id)
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  if (!result.ok) {
+    return NextResponse.json({ error: result.error }, { status: result.status })
   }
 
   return NextResponse.json({ ok: true })

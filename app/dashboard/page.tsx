@@ -9,7 +9,7 @@ import { getSellerListings } from '@/lib/listings'
 import { createClient } from '@/lib/supabase/server'
 import { formatPrice, getArUrl } from '@/lib/types'
 import { generateQrDataUrl } from '@/lib/qr'
-import { btnAccent, btnPrimary, btnSecondary, emptyState, pageLede, pageShell, pageTitle } from '@/lib/ui'
+import { btnAccent, btnPrimary, emptyState, pageLede, pageShell, pageTitle } from '@/lib/ui'
 import { cn } from '@/lib/cn'
 
 const statusPillStyles: Record<string, string> = {
@@ -118,6 +118,7 @@ export default async function DashboardPage() {
                       {listing.status === 'processing' && (
                         <ListingActionRow
                           listingId={listing.id}
+                          listingTitle={listing.title}
                           viewHref={`/dashboard/listing/${listing.id}/status`}
                           viewLabel="View status"
                         />
@@ -125,6 +126,7 @@ export default async function DashboardPage() {
                       {listing.status === 'live' && (
                         <ListingActionRow
                           listingId={listing.id}
+                          listingTitle={listing.title}
                           viewHref={`/product/${listing.id}`}
                           viewLabel="View listing"
                         />
@@ -132,6 +134,7 @@ export default async function DashboardPage() {
                       {listing.status === 'failed' && (
                         <ListingActionRow
                           listingId={listing.id}
+                          listingTitle={listing.title}
                           viewHref={`/dashboard/listing/${listing.id}/status`}
                           viewLabel="Retry"
                         />
