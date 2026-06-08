@@ -81,60 +81,61 @@ export default async function DashboardPage() {
                   </div>
 
                   <div className="flex flex-col flex-1 p-5">
-                  <div className="flex-1 grid gap-2">
-                    <h2 className="m-0 font-display text-xl leading-snug text-ink-strong">{listing.title}</h2>
-                    <p className="m-0 font-semibold text-accent-clay">{formatPrice(listing.price_cents)}</p>
-                    <span
-                      className={cn(
-                        'inline-block w-fit text-[0.7rem] font-semibold tracking-widest uppercase px-[0.6rem] py-[0.3rem] rounded-xs',
-                        statusPillStyles[listing.status] ?? 'bg-line'
-                      )}
-                    >
-                      {listing.status}
-                      {jobStatus && listing.status === 'processing' ? ` · ${jobStatus}` : ''}
-                    </span>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-[0.8rem] text-ink-muted">
-                      <span>{listing.views_count} views</span>
-                      <span>{listing.ar_sessions_count} AR</span>
-                      <span>{listing.enquiries_count} enquiries</span>
-                    </div>
-                  </div>
+                    <div className="flex gap-4 items-start justify-between">
+                      <div className="flex-1 min-w-0 grid gap-2">
+                        <h2 className="m-0 font-display text-xl leading-snug text-ink-strong">{listing.title}</h2>
+                        <p className="m-0 font-semibold text-accent-clay">{formatPrice(listing.price_cents)}</p>
+                        <span
+                          className={cn(
+                            'inline-block w-fit text-[0.7rem] font-semibold tracking-widest uppercase px-[0.6rem] py-[0.3rem] rounded-xs',
+                            statusPillStyles[listing.status] ?? 'bg-line'
+                          )}
+                        >
+                          {listing.status}
+                          {jobStatus && listing.status === 'processing' ? ` · ${jobStatus}` : ''}
+                        </span>
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-[0.8rem] text-ink-muted">
+                          <span>{listing.views_count} views</span>
+                          <span>{listing.ar_sessions_count} AR</span>
+                          <span>{listing.enquiries_count} enquiries</span>
+                        </div>
+                      </div>
 
-                  <div className="mt-5 pt-4 border-t border-line grid gap-3 justify-items-center">
-                    {listing.status === 'processing' && (
-                      <Link
-                        href={`/dashboard/listing/${listing.id}/status`}
-                        className={cn(btnSecondary, 'w-full text-center')}
-                      >
-                        View status
-                      </Link>
-                    )}
-                    {listing.status === 'live' && (
-                      <>
-                        {qr && (
-                          <a
-                            href={qr}
-                            download={`atelier-${listing.id}.png`}
-                            className="rounded-sm border border-line p-2 bg-white hover:border-accent-clay-soft transition-colors"
-                            title="Download QR code"
-                          >
-                            <Image src={qr} alt="QR code for AR" width={128} height={128} unoptimized />
-                          </a>
-                        )}
+                      {listing.status === 'live' && qr && (
+                        <a
+                          href={qr}
+                          download={`atelier-${listing.id}.png`}
+                          className="shrink-0 rounded-sm border border-line p-1.5 bg-white hover:border-accent-clay-soft transition-colors"
+                          title="Download QR code"
+                        >
+                          <Image src={qr} alt="QR code for AR" width={72} height={72} unoptimized />
+                        </a>
+                      )}
+                    </div>
+
+                    <div className="mt-4 pt-4 border-t border-line">
+                      {listing.status === 'processing' && (
+                        <Link
+                          href={`/dashboard/listing/${listing.id}/status`}
+                          className={cn(btnSecondary, 'w-full text-center')}
+                        >
+                          View status
+                        </Link>
+                      )}
+                      {listing.status === 'live' && (
                         <Link href={`/product/${listing.id}`} className={cn(btnSecondary, 'w-full text-center')}>
                           View listing
                         </Link>
-                      </>
-                    )}
-                    {listing.status === 'failed' && (
-                      <Link
-                        href={`/dashboard/listing/${listing.id}/status`}
-                        className={cn(btnSecondary, 'w-full text-center')}
-                      >
-                        Retry
-                      </Link>
-                    )}
-                  </div>
+                      )}
+                      {listing.status === 'failed' && (
+                        <Link
+                          href={`/dashboard/listing/${listing.id}/status`}
+                          className={cn(btnSecondary, 'w-full text-center')}
+                        >
+                          Retry
+                        </Link>
+                      )}
+                    </div>
                   </div>
                 </article>
               )
