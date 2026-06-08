@@ -62,8 +62,25 @@ export default async function DashboardPage() {
               return (
                 <article
                   key={listing.id}
-                  className="flex flex-col h-full p-5 border border-line rounded-md bg-surface-paper"
+                  className="flex flex-col h-full overflow-hidden border border-line rounded-md bg-surface-paper"
                 >
+                  <div className="aspect-[4/3] border-b border-line bg-[color-mix(in_oklab,var(--color-surface-paper)_92%,var(--color-accent-peach))]">
+                    {listing.glb_url ? (
+                      <ProductModelViewer
+                        src={listing.glb_url}
+                        alt={listing.title}
+                        poster={listing.poster_url ?? undefined}
+                        loading="lazy"
+                        autoRotate
+                      />
+                    ) : (
+                      <div className="h-full grid place-items-center px-4 text-center text-[0.85rem] text-ink-muted">
+                        {listing.status === 'processing' ? '3D model processing…' : 'No 3D preview yet'}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col flex-1 p-5">
                   <div className="flex-1 grid gap-2">
                     <h2 className="m-0 font-display text-xl leading-snug text-ink-strong">{listing.title}</h2>
                     <p className="m-0 font-semibold text-accent-clay">{formatPrice(listing.price_cents)}</p>
@@ -117,6 +134,7 @@ export default async function DashboardPage() {
                         Retry
                       </Link>
                     )}
+                  </div>
                   </div>
                 </article>
               )
