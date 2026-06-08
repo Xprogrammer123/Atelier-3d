@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import Image from 'next/image'
 import { DbSetupBanner } from '@/components/DbSetupBanner'
+import { ListingActionRow } from '@/components/dashboard/ListingActionRow'
 import { ProductModelViewer } from '@/components/ProductModelViewer'
 import { getSiteOrigin } from '@/lib/app-url-server'
 import { getSellerListings } from '@/lib/listings'
@@ -115,25 +116,25 @@ export default async function DashboardPage() {
 
                     <div className="mt-4 pt-4 border-t border-line">
                       {listing.status === 'processing' && (
-                        <Link
-                          href={`/dashboard/listing/${listing.id}/status`}
-                          className={cn(btnSecondary, 'w-full text-center')}
-                        >
-                          View status
-                        </Link>
+                        <ListingActionRow
+                          listingId={listing.id}
+                          viewHref={`/dashboard/listing/${listing.id}/status`}
+                          viewLabel="View status"
+                        />
                       )}
                       {listing.status === 'live' && (
-                        <Link href={`/product/${listing.id}`} className={cn(btnSecondary, 'w-full text-center')}>
-                          View listing
-                        </Link>
+                        <ListingActionRow
+                          listingId={listing.id}
+                          viewHref={`/product/${listing.id}`}
+                          viewLabel="View listing"
+                        />
                       )}
                       {listing.status === 'failed' && (
-                        <Link
-                          href={`/dashboard/listing/${listing.id}/status`}
-                          className={cn(btnSecondary, 'w-full text-center')}
-                        >
-                          Retry
-                        </Link>
+                        <ListingActionRow
+                          listingId={listing.id}
+                          viewHref={`/dashboard/listing/${listing.id}/status`}
+                          viewLabel="Retry"
+                        />
                       )}
                     </div>
                   </div>

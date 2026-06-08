@@ -6,7 +6,6 @@ import { useState } from 'react'
 import type { DemoModelId } from '@/lib/demo-models'
 import { DemoModelPicker } from '@/components/listing/DemoModelPicker'
 import { pendoTrack } from '@/lib/pendo-client'
-import { ProcessingStepLoader } from '@/components/listing/ProcessingStepLoader'
 import { CATEGORIES } from '@/lib/types'
 import { btnAccent, btnSecondary, catalogEyebrow, formField, formInput, formLabel } from '@/lib/ui'
 import { cn } from '@/lib/cn'
@@ -22,24 +21,11 @@ import { cn } from '@/lib/cn'
  * → uploadScanVideo → POST /api/listings/[id]/scan-uploaded → npm run worker
  */
 
-const PUBLISH_STEPS = [
-  { key: 'create', label: 'Create listing' },
-  { key: 'model', label: 'Attach 3D' },
-  { key: 'live', label: 'Go live' },
-] as const
-
-function publishStepIndex(phase: string | null): number {
-  if (phase?.startsWith('Attaching')) return 1
-  if (phase?.startsWith('Publishing')) return 2
-  return 0
-}
-
 export function CreateListingForm() {
   const router = useRouter()
   const [demoModel, setDemoModel] = useState<DemoModelId | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [uploadPhase, setUploadPhase] = useState<string | null>(null)
 
   const canSubmit = Boolean(demoModel)
 
@@ -57,7 +43,6 @@ export function CreateListingForm() {
 
     setLoading(true)
     try {
-      setUploadPhase('Creating listing…')
       const res = await fetch('/api/listings', { method: 'POST', body: fd })
       const body = (await res.json().catch(() => ({}))) as {
         listingId?: string
@@ -69,10 +54,6 @@ export function CreateListingForm() {
         setError(body.error ?? 'Failed to create listing')
         return
       }
-
-      setUploadPhase('Attaching 3D model…')
-      await new Promise((r) => setTimeout(r, 400))
-      setUploadPhase('Publishing listing…')
 
       pendoTrack('listing_created', {
         listing_id: body.listingId,
@@ -95,7 +76,6 @@ export function CreateListingForm() {
       setError(err instanceof Error ? err.message : 'Network error. Check your connection and try again.')
     } finally {
       setLoading(false)
-      setUploadPhase(null)
     }
   }
 
@@ -108,15 +88,12 @@ export function CreateListingForm() {
           aria-live="polite"
           aria-label="Publishing listing"
         >
-          <div className="w-full max-w-lg p-6 sm:p-8 bg-surface-paper border border-line rounded-lg shadow-lift animate-listing-step-pop">
-            <ProcessingStepLoader
-              steps={[...PUBLISH_STEPS]}
-              activeIndex={publishStepIndex(uploadPhase)}
-              title={uploadPhase ?? 'Publishing…'}
-              message="Your listing goes live with 3D preview and AR in seconds."
-              showSpinner
-              compact
-            />
+          <div className="grid gap-4 justify-items-center p-8 bg-surface-paper border border-line rounded-lg shadow-lift">
+            <div className="relative size-11" aria-hidden>
+              <div className="absolute inset-0 rounded-full border-[3px] border-line" />
+              <div className="absolute inset-0 rounded-full border-[3px] border-transparent border-t-accent-clay animate-listing-spin" />
+            </div>
+            <p className="m-0 font-semibold text-ink-strong">Publishing listing…</p>
           </div>
         </div>
       )}
@@ -208,7 +185,7 @@ export function CreateListingForm() {
 
             <div className="flex flex-wrap gap-3 items-center">
               <button id="btn-publish-listing" type="submit" className={cn(btnAccent, 'min-w-56')} disabled={loading || !canSubmit}>
-                {loading ? uploadPhase ?? 'Working…' : 'Publish listing'}
+                {loading ? 'Publishing…' : 'Publish listing'}
               </button>
               <Link href="/dashboard" className={btnSecondary}>
                 Cancel
