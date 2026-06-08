@@ -38,7 +38,7 @@ export default async function DashboardPage() {
             Manage listings, download QR codes, and track engagement.
           </p>
         </div>
-        <Link href="/dashboard/create" className={btnAccent}>
+        <Link id="link-create-listing" href="/dashboard/create" className={btnAccent}>
           + Create listing
         </Link>
       </div>

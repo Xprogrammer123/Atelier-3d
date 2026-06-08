@@ -97,7 +97,7 @@ export default function RegisterPage() {
             />
           </div>
           {error && <p className="m-0 text-[#8b2e1f] text-[0.85rem]">{error}</p>}
-          <button type="submit" className={btnPrimary} disabled={loading}>
+          <button id="btn-register-email" type="submit" className={btnPrimary} disabled={loading}>
             {loading ? 'Creating account…' : 'Register with email'}
           </button>
         </form>

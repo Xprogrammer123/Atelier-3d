@@ -136,7 +136,7 @@ export function ProductModelViewer({
         </div>
       )}
       {eagerAr && arEnabled && (
-        <button type="button" className={cn(btnAccent, 'mt-3 w-full')} onClick={() => void handleActivateAR()}>
+        <button id="btn-activate-ar" type="button" className={cn(btnAccent, 'mt-3 w-full')} onClick={() => void handleActivateAR()}>
           Try in Your Room
         </button>
       )}

@@ -222,7 +222,7 @@ export function CreateListingForm() {
             )}
 
             <div className="flex flex-wrap gap-3 items-center">
-              <button type="submit" className={cn(btnAccent, 'min-w-56')} disabled={loading || !canSubmit}>
+              <button id="btn-publish-listing" type="submit" className={cn(btnAccent, 'min-w-56')} disabled={loading || !canSubmit}>
                 {loading ? uploadPhase ?? 'Working…' : 'Publish listing'}
               </button>
               <Link href="/dashboard" className={btnSecondary}>

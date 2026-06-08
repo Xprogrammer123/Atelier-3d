@@ -68,7 +68,7 @@ export function ProductDetailView({ listing, qrDataUrl }: Props) {
           <p className="m-0 text-2xl font-bold text-accent-clay">{formatPrice(listing.price_cents)}</p>
 
           <div className="flex flex-col gap-2 my-5">
-            <Link href={`/ar/${listing.id}`} className={cn(btnAccent, 'w-full text-center justify-center')}>
+            <Link id="link-try-in-room" href={`/ar/${listing.id}`} className={cn(btnAccent, 'w-full text-center justify-center')}>
               Try in your room
             </Link>
             <ContactSellerButton

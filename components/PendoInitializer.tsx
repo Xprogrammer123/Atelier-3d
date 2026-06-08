@@ -4,10 +4,20 @@ import { useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { pendoClearSession, pendoIdentify, pendoInitialize } from '@/lib/pendo-client'
 
+function getAnonymousVisitorId(): string {
+  const key = 'pendo_visitor_id'
+  let id = localStorage.getItem(key)
+  if (!id) {
+    id = crypto.randomUUID()
+    localStorage.setItem(key, id)
+  }
+  return id
+}
+
 export function PendoInitializer() {
   useEffect(() => {
     pendoInitialize({
-      visitor: { id: '' },
+      visitor: { id: getAnonymousVisitorId() },
     })
 
     const supabase = createClient()

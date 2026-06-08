@@ -82,7 +82,7 @@ export function LandingPage() {
               <Link href="/catalogue" className={landingPrimaryBtn}>
                 Enter the collection
               </Link>
-              <Link href="/auth/register" className={landingGhostBtn}>
+              <Link id="link-list-your-work" href="/auth/register" className={landingGhostBtn}>
                 List your work
               </Link>
             </div>
