@@ -2,11 +2,6 @@ import Link from 'next/link'
 import { LandingHeroVisual } from '@/components/landing/LandingHeroVisual'
 import { LandingShowcase } from '@/components/landing/LandingShowcase'
 
-const STATS = [
-  { value: '1', label: 'Scan to list' },
-  { value: '3D', label: 'Mesh reconstruction' },
-  { value: '0', label: 'Apps to download' },
-]
 
 const PROCESS = [
   {
@@ -27,7 +22,7 @@ const PROCESS = [
 ]
 
 const landingPrimaryBtn =
-  'inline-flex items-center px-8 py-[1.05rem] bg-l-ink text-l-paper text-[0.72rem] font-semibold tracking-[0.16em] uppercase border-0 transition-[background,transform] duration-250 hover:bg-l-clay-deep hover:-translate-y-0.5'
+  'inline-flex items-center px-8 py-[1.05rem] bg-l-ink text-l-paper text-[0.72rem] font-semibold tracking-[0.16em] uppercase border transition-[background,transform] duration-250 hover:bg-l-clay-deep hover:-translate-y-0.5'
 
 const landingGhostBtn =
   'inline-flex items-center px-8 py-[1.05rem] border border-l-line bg-white/35 text-l-ink text-[0.72rem] font-semibold tracking-[0.14em] uppercase backdrop-blur-sm transition-[border-color,background] hover:border-l-clay hover:bg-white'
@@ -86,18 +81,6 @@ export function LandingPage() {
                 List your work
               </Link>
             </div>
-            <dl className="grid grid-cols-3 gap-4 m-0 pt-6 border-t border-l-line">
-              {STATS.map((s) => (
-                <div key={s.label}>
-                  <dt className="text-[0.65rem] font-semibold tracking-[0.12em] uppercase text-l-ink-soft mb-1">
-                    {s.label}
-                  </dt>
-                  <dd className="m-0 font-display text-[clamp(1.75rem,3vw,2.25rem)] font-semibold text-l-clay">
-                    {s.value}
-                  </dd>
-                </div>
-              ))}
-            </dl>
           </div>
           <LandingHeroVisual />
         </div>
@@ -125,7 +108,7 @@ export function LandingPage() {
               Curated preview
             </p>
             <h2 className="mt-2 mb-0 font-display text-[clamp(2.25rem,5vw,3.5rem)] font-semibold leading-tight tracking-tight">
-              Pieces that belong <em className="italic text-l-clay">in situ.</em>
+              Pieces that belong <em className="italic text-l-clay">in your Environment</em>
             </h2>
           </div>
           <Link
@@ -146,10 +129,7 @@ export function LandingPage() {
           <h2 className="m-0 font-display text-[clamp(1.75rem,3vw,2.5rem)] font-semibold leading-tight max-w-[16ch]">
             Your room is the final showroom.
           </h2>
-          <p className="m-0 max-w-[36ch] leading-relaxed text-white/75 text-[0.95rem]">
-            model-viewer routes each device to the best AR mode — WebXR on Android with ARCore,
-            Scene Viewer as fallback, AR Quick Look on iPhone.
-          </p>
+         
           <Link href="/catalogue" className={landingLightBtn}>
             Shop the catalogue
           </Link>
@@ -160,8 +140,8 @@ export function LandingPage() {
           </p>
           <h3 className="m-0 font-display text-[1.65rem] font-semibold">Scan in. Model out.</h3>
           <p className="m-0 leading-relaxed text-l-ink-soft text-[0.92rem]">
-            Walk around the piece in Atelier — DG-Mesh builds the 3D model, publishes your listing,
-            and mints a QR for tags, Instagram, and marketplaces.
+            Walk around the piece in Atelier , publish your listing,
+            and mint a QR for tags, Instagram, and your social media.
           </p>
           <Link
             href="/dashboard/create"
@@ -218,8 +198,8 @@ export function LandingPage() {
         </ol>
       </section>
 
-      <section className="relative z-[1] bg-l-ink text-l-paper mt-8">
-        <div className="max-w-[1440px] mx-auto px-[clamp(1.25rem,4vw,3.5rem)] py-[clamp(4rem,10vw,6rem)] text-center">
+      <section className="relative z-[1] bg-l-ink text-l-paper mt-8 max-w-[70%] mx-auto">
+        <div className="px-[clamp(1.25rem,4vw,3.5rem)] py-[clamp(4rem,10vw,17rem)] text-center">
           <h2 className="m-0 mb-3 font-display text-[clamp(2rem,5vw,3.25rem)] font-semibold">
             Ready to see it in your space?
           </h2>
@@ -229,9 +209,6 @@ export function LandingPage() {
           <div className="flex flex-wrap gap-[0.65rem] justify-center">
             <Link href="/catalogue" className={landingPrimaryBtn}>
               Explore collection
-            </Link>
-            <Link href="/auth/login" className={landingOutlineDarkBtn}>
-              Sign in
             </Link>
           </div>
         </div>

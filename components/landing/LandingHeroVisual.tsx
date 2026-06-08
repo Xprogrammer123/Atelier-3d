@@ -46,7 +46,6 @@ export function LandingHeroVisual() {
           <strong className="block text-[0.78rem] font-semibold tracking-wide mb-[0.15rem]">
             Try in your room
           </strong>
-          <p className="m-0 text-[0.68rem] text-l-ink-soft leading-snug">WebXR · Scene Viewer · Quick Look</p>
         </div>
       </div>
       <div
