@@ -9,20 +9,13 @@ import {
   pendoInitialize,
 } from '@/lib/pendo-client'
 
-function getAnonymousVisitorId(): string {
-  const key = 'pendo_visitor_id'
-  let id = localStorage.getItem(key)
-  if (!id) {
-    id = crypto.randomUUID()
-    localStorage.setItem(key, id)
-  }
-  return id
-}
-
 export function PendoInitializer() {
   useEffect(() => {
+    const anonymousId = getAnonymousVisitorId()
+    document.cookie = `pendo_visitor_id=${anonymousId};path=/;max-age=31536000;SameSite=Lax`
+
     pendoInitialize({
-      visitor: { id: getAnonymousVisitorId() },
+      visitor: { id: anonymousId },
     })
 
     const supabase = createClient()

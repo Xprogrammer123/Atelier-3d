@@ -24,7 +24,25 @@ export function pendoTrack(eventName: string, properties?: PendoTrackProps): voi
 }
 
 export function pendoInitialize(options: unknown): void {
-  getPendo()?.initialize(options)
+  const pendo = getPendo()
+  if (pendo) {
+    pendo.initialize(options)
+    return
+  }
+
+  // Retry if the stub hasn't been created yet
+  let retries = 0
+  const maxRetries = 10
+  const interval = setInterval(() => {
+    retries++
+    const p = getPendo()
+    if (p) {
+      clearInterval(interval)
+      p.initialize(options)
+    } else if (retries >= maxRetries) {
+      clearInterval(interval)
+    }
+  }, 50)
 }
 
 export function pendoIdentify(options: unknown): void {
