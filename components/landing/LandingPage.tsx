@@ -231,9 +231,6 @@ export function LandingPage() {
           <Link href="/catalogue" className="hover:text-l-clay">
             Collection
           </Link>
-          <Link href="/auth/register" className="hover:text-l-clay">
-            Sell
-          </Link>
           <Link href="/auth/login" className="hover:text-l-clay">
             Sign in
           </Link>

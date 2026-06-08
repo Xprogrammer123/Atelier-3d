@@ -42,12 +42,6 @@ export async function SiteHeader() {
             >
               Dashboard
             </Link>
-            <Link
-              href="/dashboard/create"
-              className="px-[0.85rem] py-[0.45rem] rounded-sm text-[0.82rem] font-semibold tracking-widest text-ink-soft hover:bg-surface-strong hover:text-ink-strong transition-colors"
-            >
-              Sell
-            </Link>
             <form action="/auth/signout" method="post">
               <button
                 type="submit"

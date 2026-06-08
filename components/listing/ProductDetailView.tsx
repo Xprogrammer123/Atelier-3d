@@ -41,21 +41,35 @@ export function ProductDetailView({ listing, qrDataUrl }: Props) {
       </nav>
 
       <div className="grid gap-8 min-[960px]:grid-cols-[1.15fr_0.85fr] min-[960px]:items-start">
-        <div className="aspect-[4/3] rounded-lg border border-line overflow-hidden bg-surface-paper shadow-soft">
-          {listing.glb_url ? (
-            <ProductModelViewer
-              src={listing.glb_url}
-              alt={listing.title}
-              poster={listing.poster_url ?? undefined}
-              loading="eager"
-              autoRotate
-              ar
-              showArButton
-              cameraOrbit="30deg 75deg auto"
-            />
-          ) : (
-            <div className={emptyState}>3D model not available</div>
-          )}
+        <div className="grid gap-4">
+          <div className="aspect-[4/3] rounded-lg border border-line overflow-hidden bg-surface-paper shadow-soft">
+            {listing.glb_url ? (
+              <ProductModelViewer
+                src={listing.glb_url}
+                alt={listing.title}
+                poster={listing.poster_url ?? undefined}
+                loading="eager"
+                autoRotate
+                ar
+                showArButton
+                cameraOrbit="30deg 75deg auto"
+              />
+            ) : (
+              <div className={emptyState}>3D model not available</div>
+            )}
+          </div>
+
+          <div className="hidden min-[960px]:grid gap-4">
+            <div className="p-5 border border-line rounded-md bg-surface-paper grid gap-4 justify-items-center text-center">
+              <div className="max-w-full">
+                <p className="m-0 mb-[0.35rem] font-semibold text-ink-strong">Scan for AR on another device</p>
+                <p className="m-0 text-xs text-ink-muted break-all">{arUrl}</p>
+              </div>
+              <img src={qrDataUrl} alt="QR code for AR preview" width={120} height={120} className="rounded-sm" />
+            </div>
+
+          
+          </div>
         </div>
 
         <div className="min-[960px]:sticky min-[960px]:top-6 grid gap-4">
@@ -67,16 +81,17 @@ export function ProductDetailView({ listing, qrDataUrl }: Props) {
           </h1>
           <p className="m-0 text-2xl font-bold text-accent-clay">{formatPrice(listing.price_cents)}</p>
 
-          <div className="flex flex-col gap-2 my-5">
+          <div className="flex flex-col gap-2 my-5 grid grid-cols-2">
             <Link id="link-try-in-room" href={`/ar/${listing.id}`} className={cn(btnAccent, 'w-full text-center justify-center')}>
               Try in your room
             </Link>
+
+            <ShareLinkButton url={arUrl} label="Copy AR link" />
             <ContactSellerButton
               listingId={listing.id}
               email={listing.seller?.email ?? null}
               phone={listing.seller?.phone ?? null}
             />
-            <ShareLinkButton url={arUrl} label="Copy AR link" />
           </div>
 
           <div className="py-5 border-y border-line">
@@ -103,19 +118,22 @@ export function ProductDetailView({ listing, qrDataUrl }: Props) {
             )}
             <div className="grid grid-cols-[6rem_1fr] gap-2">
               <dt className="text-[0.72rem] font-semibold tracking-widest uppercase text-ink-muted">Seller</dt>
-              <dd className="m-0 text-ink-strong">{sellerName}</dd>
+              <dd className="m-0 text-ink-strong mb-7">{sellerName}</dd>
             </div>
+            <ShareLinkButton url={productUrl} label="Copy product link" />
           </dl>
 
-          <div className="flex justify-between items-center gap-4 mt-5 p-5 border border-line rounded-md bg-surface-paper grid gap-3 justify-items-start">
-            <div>
+          <div className="mt-5 p-5 border border-line rounded-md bg-surface-paper grid gap-4 justify-items-center text-center min-[960px]:hidden">
+            <div className="max-w-full">
               <p className="m-0 mb-[0.35rem] font-semibold text-ink-strong">Scan for AR on another device</p>
               <p className="m-0 text-xs text-ink-muted break-all">{arUrl}</p>
             </div>
             <img src={qrDataUrl} alt="QR code for AR preview" width={120} height={120} className="rounded-sm" />
           </div>
 
-          <ShareLinkButton url={productUrl} label="Copy product link" />
+          <div className="min-[960px]:hidden">
+            <ShareLinkButton url={productUrl} label="Copy product link" />
+          </div>
         </div>
       </div>
     </main>
