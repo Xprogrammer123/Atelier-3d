@@ -2,7 +2,9 @@ import { cookies } from 'next/headers'
 
 const PENDO_TRACK_URL = 'https://data.pendo.io/data/track'
 const PENDO_INTEGRATION_KEY = '17825332-b9f3-4ba5-bc23-aa3851e1a733'
-const PENDO_APP_ID = '4fe71006-306d-4ca4-acd4-a4a7cff34280'
+
+const PENDO_APP_ID = process.env.PENDO_APP_ID ?? '4fe71006-306d-4ca4-acd4-a4a7cff34280'
+
 const PENDO_TIMEOUT_MS = 2500
 
 export async function pendoTrackServer(
@@ -12,12 +14,12 @@ export async function pendoTrackServer(
     accountId?: string
     properties?: Record<string, unknown>
   } = {}
-): Promise<void> {
-  let { visitorId, accountId = 'system', properties } = options
+
+): void {
+  const { visitorId, accountId = visitorId ?? 'anonymous', properties } = options
 
   if (!visitorId) {
-    const cookieStore = await cookies()
-    visitorId = cookieStore.get('pendo_visitor_id')?.value ?? 'anonymous'
+    return
   }
 
   void fetch(PENDO_TRACK_URL, {
@@ -28,6 +30,7 @@ export async function pendoTrackServer(
     },
     body: JSON.stringify({
       type: 'track',
+      appId: PENDO_APP_ID,
       event,
       visitorId,
       accountId,

@@ -1,3 +1,5 @@
+import { ANONYMOUS_VISITOR_COOKIE } from '@/lib/pendo-constants'
+
 type PendoTrackProps = Record<string, string | number | boolean | undefined>
 
 interface PendoAgent {
@@ -30,17 +32,19 @@ export function pendoInitialize(options: unknown): void {
     return
   }
 
-  // Retry if the stub hasn't been created yet
-  let retries = 0
-  const maxRetries = 10
-  const interval = setInterval(() => {
-    retries++
-    const p = getPendo()
-    if (p) {
-      clearInterval(interval)
-      p.initialize(options)
-    } else if (retries >= maxRetries) {
-      clearInterval(interval)
+
+  let attempts = 0
+  const timer = window.setInterval(() => {
+    attempts += 1
+    const agent = getPendo()
+    if (agent) {
+      agent.initialize(options)
+      window.clearInterval(timer)
+      return
+    }
+    if (attempts >= 10) {
+      window.clearInterval(timer)
+
     }
   }, 50)
 }
@@ -57,7 +61,13 @@ export function pendoClearSession(): void {
   getPendo()?.clearSession()
 }
 
-const ANONYMOUS_VISITOR_KEY = 'atelier_anonymous_visitor_id'
+const ANONYMOUS_VISITOR_KEY = ANONYMOUS_VISITOR_COOKIE
+
+/** Persist anonymous id in localStorage + cookie so server routes can attribute events. */
+export function syncAnonymousVisitorCookie(id: string): void {
+  if (typeof document === 'undefined') return
+  document.cookie = `${ANONYMOUS_VISITOR_COOKIE}=${encodeURIComponent(id)}; path=/; max-age=31536000; SameSite=Lax`
+}
 
 /** Stable anonymous ID for buyer sessions before login (no PII). */
 export function getAnonymousVisitorId(): string {
@@ -69,8 +79,11 @@ export function getAnonymousVisitorId(): string {
       id = crypto.randomUUID()
       localStorage.setItem(ANONYMOUS_VISITOR_KEY, id)
     }
+    syncAnonymousVisitorCookie(id)
     return id
   } catch {
-    return crypto.randomUUID()
+    const id = crypto.randomUUID()
+    syncAnonymousVisitorCookie(id)
+    return id
   }
 }
