@@ -155,12 +155,13 @@ export function ProcessingStatusView({
             </p>
             <div className="flex flex-wrap gap-[0.65rem] justify-center">
               <button
+                id="btn-retry-generation"
                 type="button"
                 className={btnAccent}
                 disabled={retrying}
                 onClick={() => void handleRetry()}
               >
-                {retrying ? 'Retrying…' : 'Retry reconstruction'}
+                {retrying ? 'Retrying…' : 'Retry generation'}
               </button>
               <Link href="/dashboard/create" className={btnSecondary}>
                 New listing

@@ -38,7 +38,7 @@ export default async function DashboardPage() {
             Manage listings, download QR codes, and track engagement.
           </p>
         </div>
-        <Link href="/dashboard/create" className={btnAccent}>
+        <Link id="link-create-listing" href="/dashboard/create" className={cn(btnAccent, 'pendo-create-listing')}>
           + Create listing
         </Link>
       </div>
@@ -46,7 +46,7 @@ export default async function DashboardPage() {
       {listings.length === 0 ? (
         <div className={emptyState}>
           <p>No listings yet.</p>
-          <Link href="/dashboard/create" className={cn(btnPrimary, 'inline-flex mt-4')}>
+          <Link href="/dashboard/create" className={cn(btnPrimary, 'pendo-create-listing', 'inline-flex mt-4')}>
             Create your first listing
           </Link>
         </div>

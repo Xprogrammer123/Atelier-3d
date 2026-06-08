@@ -53,14 +53,16 @@ export function ProductCard({ listing }: Props) {
         <p className="m-0 text-[0.8rem] text-ink-muted">{sellerName}</p>
         <div className="flex flex-wrap gap-2 mt-[0.85rem] max-sm:flex-col">
           <Link
+            id={`link-view-details-${listing.id}`}
             href={`/product/${listing.id}`}
-            className={cn(btnSecondary, 'flex-1 min-h-11 text-center max-sm:w-full')}
+            className={cn(btnSecondary, 'pendo-view-details', 'flex-1 min-h-11 text-center max-sm:w-full')}
           >
             View details
           </Link>
           <Link
+            id={`link-try-ar-${listing.id}`}
             href={`/ar/${listing.id}`}
-            className={cn(btnAccent, 'flex-1 min-h-11 text-center shadow-[0_8px_20px_rgba(44,33,22,0.12)] max-sm:w-full')}
+            className={cn(btnAccent, 'pendo-try-ar', 'flex-1 min-h-11 text-center shadow-[0_8px_20px_rgba(44,33,22,0.12)] max-sm:w-full')}
           >
             Try in AR
           </Link>

@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import Script from 'next/script'
+import { Suspense } from 'react'
 import { SiteHeader } from '@/components/SiteHeader'
 import { PendoInitializer } from '@/components/PendoInitializer'
+import { PendoPageTracker } from '@/components/PendoPageTracker'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -32,6 +34,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <PendoInitializer />
+        <Suspense fallback={null}>
+          <PendoPageTracker />
+        </Suspense>
         <SiteHeader />
         {children}
       </body>

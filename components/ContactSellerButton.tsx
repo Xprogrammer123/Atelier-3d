@@ -31,7 +31,7 @@ export function ContactSellerButton({ listingId, email, phone }: Props) {
   }
 
   return (
-    <button type="button" className={btnPrimary} onClick={() => void handleContact()}>
+    <button id="btn-contact-seller" type="button" className={btnPrimary} onClick={() => void handleContact()}>
       Contact seller
     </button>
   )
